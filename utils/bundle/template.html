@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, height=device-height, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no"
+    />
+  </head>
+  <body>
+    <!-- TODO -> Style the title and description components so they are the same in every demo-->
+    <div id="demo-title-container">
+      <h1 id="demo-title">
+        <!-- Insert demo title here during demo -->
+      </h1>
+    </div>
+    <div id="demo-description-container">
+      <p id="demo-description">
+        <!-- Insert demo title here during demo -->
+      </p>
+    </div>
+    <div id="demo-toolbar">
+      <!-- Insert buttons/dropdowns/etc here during demo -->
+    </div>
+    <div id="content"></div>
+    <script type='text/javascript'>
+      async function run() {
+
+        cornerstone.helpers.setTitleAndDescription(
+          'Basic Stack',
+          'Displays a single DICOM image in a Stack viewport.'
+        );
+
+        const content = document.getElementById('content');
+        const element = document.createElement('div');
+        element.id = 'cornerstone-element';
+        element.style.width = '500px';
+        element.style.height = '500px';
+
+        content.appendChild(element);
+
+        await cornerstone.helpers.initDemo();
+
+        // Get Cornerstone imageIds and fetch metadata into RAM
+        const imageIds = await cornerstone.helpers.createImageIdsAndCacheMetaData({
+          StudyInstanceUID:
+            '1.3.6.1.4.1.14519.5.2.1.7009.2403.334240657131972136850343327463',
+          SeriesInstanceUID:
+            '1.3.6.1.4.1.14519.5.2.1.7009.2403.226151125820845824875394858561',
+          wadoRsRoot: 'https://d3t6nz73ql33tx.cloudfront.net/dicomweb',
+          type: 'STACK',
+        });
+
+        // Instantiate a rendering engine
+        const renderingEngineId = 'myRenderingEngine';
+        const renderingEngine = new cornerstone.RenderingEngine(renderingEngineId);
+
+        // Create a stack viewport
+        const viewportId = 'CT_STACK';
+        const viewportInput = {
+          viewportId,
+          type: cornerstone.Enums.ViewportType.STACK,
+          element,
+          defaultOptions: {
+            background: [0.2, 0, 0.2],
+          },
+        };
+
+        renderingEngine.enableElement(viewportInput);
+
+        // Get the stack viewport that was created
+        const viewport = (
+          renderingEngine.getViewport(viewportId)
+        );
+
+        // Define a stack containing a single image
+        const stack = [imageIds[0]];
+
+        // Set the stack on the viewport
+        await viewport.setStack(stack);
+
+        // Set the VOI of the stack
+        viewport.setProperties({ voiRange: cornerstone.helpers.ctVoiRange });
+
+        // Render the image
+        viewport.render();
+
+      }
+
+      window.onload = async function() {
+        run()
+      }
+
+    </script>
+  </body>
+</html>

@@ -15,6 +15,7 @@
     "build": "lerna run build --stream",
     "build:update-api": "lerna run build:update-api --stream",
     "example": "node ./utils/ExampleRunner/example-runner-cli.js",
+    "build:bundle": "cd packages/tools && node ../../utils/bundle/build-bundle.js",
     "all-examples": "node ./utils/ExampleRunner/build-all-examples-cli.js --fromRoot",
     "build-all-examples": "node ./utils/ExampleRunner/build-all-examples-cli.js --build --fromRoot",
     "serve-static-examples": "npx serve .static-examples",
