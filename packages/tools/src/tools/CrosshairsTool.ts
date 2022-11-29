@@ -88,7 +88,9 @@ function defaultReferenceLineControllable() {
 function defaultReferenceLineDraggableRotatable() {
   return true;
 }
-
+function defaultReferenceLineRotatable() {
+  return true;
+}
 function defaultReferenceLineSlabThicknessControlsOn() {
   return true;
 }
@@ -117,6 +119,7 @@ class CrosshairsTool extends AnnotationTool {
   // This because the rotation operation rotates also all the other active/intersecting reference lines of the same angle
   _getReferenceLineColor?: (viewportId: string) => string;
   _getReferenceLineControllable?: (viewportId: string) => boolean;
+  _getReferenceLineRotatable?: (viewportId: string) => boolean;
   _getReferenceLineDraggableRotatable?: (viewportId: string) => boolean;
   _getReferenceLineSlabThicknessControlsOn?: (viewportId: string) => boolean;
   editData: {
@@ -161,6 +164,9 @@ class CrosshairsTool extends AnnotationTool {
     this._getReferenceLineDraggableRotatable =
       toolProps.configuration?.getReferenceLineDraggableRotatable ||
       defaultReferenceLineDraggableRotatable;
+      this._getReferenceLineRotatable =
+      toolProps.configuration?.getReferenceLineRotatable ||
+      defaultReferenceLineRotatable;
     this._getReferenceLineSlabThicknessControlsOn =
       toolProps.configuration?.getReferenceLineSlabThicknessControlsOn ||
       defaultReferenceLineSlabThicknessControlsOn;
@@ -341,7 +347,7 @@ class CrosshairsTool extends AnnotationTool {
         otherViewport.id
       );
       const viewportDraggableRotatable =
-        this._getReferenceLineDraggableRotatable(otherViewport.id);
+        this._getReferenceLineDraggableRotatable(otherViewport.id) && this._getReferenceLineDraggableRotatable(otherViewport.id);
       if (!viewportControllable || !viewportDraggableRotatable) {
         continue;
       }
@@ -1040,6 +1046,8 @@ class CrosshairsTool extends AnnotationTool {
       );
       const viewportDraggableRotatable =
         this._getReferenceLineDraggableRotatable(otherViewport.id);
+      const viewportRotatable =
+        this._getReferenceLineRotatable(otherViewport.id);
       const viewportSlabThicknessControlsOn =
         this._getReferenceLineSlabThicknessControlsOn(otherViewport.id);
       const selectedViewportId = data.activeViewportIds.find(
@@ -1192,7 +1200,8 @@ class CrosshairsTool extends AnnotationTool {
           lineActive &&
           !rotHandlesActive &&
           !slabThicknessHandlesActive &&
-          viewportDraggableRotatable
+          viewportDraggableRotatable &&
+          viewportRotatable
         ) {
           const handleUID = `${lineIndex}`;
           // draw rotation handles inactive
@@ -1226,7 +1235,7 @@ class CrosshairsTool extends AnnotationTool {
               type: 'rect',
             }
           );
-        } else if (rotHandlesActive && viewportDraggableRotatable) {
+        } else if (rotHandlesActive && viewportDraggableRotatable && viewportRotatable) {
           const handleUID = `${lineIndex}`;
           // draw all rotation handles as active
           drawHandlesSvg(
@@ -2350,7 +2359,7 @@ class CrosshairsTool extends AnnotationTool {
       }
 
       const viewportDraggableRotatable =
-        this._getReferenceLineDraggableRotatable(otherViewport.id);
+        this._getReferenceLineDraggableRotatable(otherViewport.id) && this._getReferenceLineRotatable(otherViewport.id);
       if (!viewportDraggableRotatable) {
         continue;
       }
