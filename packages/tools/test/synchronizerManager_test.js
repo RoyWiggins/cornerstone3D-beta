@@ -13,11 +13,9 @@ const {
   setVolumesForViewports,
   volumeLoader,
   imageLoader,
-  CONSTANTS,
 } = cornerstone3D;
 
 const { Events, ViewportType } = Enums;
-const { ORIENTATION } = CONSTANTS;
 
 const { unregisterAllImageLoaders } = imageLoader;
 const { createAndCacheVolume, registerVolumeLoader } = volumeLoader;
@@ -116,7 +114,7 @@ describe('Synchronizer Manager: ', () => {
         element: element1,
         defaultOptions: {
           background: [1, 0, 1], // pinkish background
-          orientation: ORIENTATION.AXIAL,
+          orientation: Enums.OrientationAxis.AXIAL,
         },
       },
       {
@@ -125,7 +123,7 @@ describe('Synchronizer Manager: ', () => {
         element: element2,
         defaultOptions: {
           background: [1, 0, 1], // pinkish background
-          orientation: ORIENTATION.AXIAL,
+          orientation: Enums.OrientationAxis.AXIAL,
         },
       },
     ]);
@@ -197,6 +195,8 @@ describe('Synchronizer Manager: ', () => {
           [viewportId2]
         );
       });
+
+      this.renderingEngine.render();
     } catch (e) {
       done.fail(e);
     }
@@ -260,7 +260,7 @@ describe('Synchronizer Manager: ', () => {
         element: element1,
         defaultOptions: {
           background: [1, 0, 1], // pinkish background
-          orientation: ORIENTATION.AXIAL,
+          orientation: Enums.OrientationAxis.AXIAL,
         },
       },
       {
@@ -269,7 +269,7 @@ describe('Synchronizer Manager: ', () => {
         element: element2,
         defaultOptions: {
           background: [1, 0, 1], // pinkish background
-          orientation: ORIENTATION.CORONAL,
+          orientation: Enums.OrientationAxis.CORONAL,
         },
       },
     ]);

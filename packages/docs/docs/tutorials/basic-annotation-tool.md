@@ -48,7 +48,7 @@ Loading a volume is possible by using the `volumeLoader` API.
 ```js
 // note we need to add the cornerstoneStreamingImageVolume: to
 // use the streaming volume loader
-const volumeId = 'cornerStreamingImageVolume: myVolume';
+const volumeId = 'cornerstoneStreamingImageVolume: myVolume';
 
 // Define a volume in memory
 const volume = await volumeLoader.createAndCacheVolume(volumeId, { imageIds });
@@ -66,7 +66,7 @@ const viewportInput = [
     element: element1,
     type: ViewportType.ORTHOGRAPHIC,
     defaultOptions: {
-      orientation: ORIENTATION.AXIAL,
+      orientation: Enums.OrientationAxis.AXIAL,
     },
   },
   {
@@ -74,7 +74,7 @@ const viewportInput = [
     element: element2,
     type: ViewportType.ORTHOGRAPHIC,
     defaultOptions: {
-      orientation: ORIENTATION.SAGITTAL,
+      orientation: Enums.OrientationAxis.SAGITTAL,
     },
   },
 ];
@@ -121,7 +121,6 @@ toolGroup.setToolActive(BidirectionalTool.toolName, {
 });
 ```
 
-
 Let's load the volume and set the viewports to render the volume.
 
 ```js
@@ -152,6 +151,15 @@ renderingEngine.renderViewports([viewportId1, viewportId2]);
 ## Final code
 
 ```js
+// Get Cornerstone imageIds and fetch metadata into RAM
+const imageIds = await createImageIdsAndCacheMetaData({
+  StudyInstanceUID:
+    '1.3.6.1.4.1.14519.5.2.1.7009.2403.334240657131972136850343327463',
+  SeriesInstanceUID:
+    '1.3.6.1.4.1.14519.5.2.1.7009.2403.226151125820845824875394858561',
+  wadoRsRoot: 'https://d3t6nz73ql33tx.cloudfront.net/dicomweb',
+});
+
 const content = document.getElementById('content');
 
 // element for axial view
@@ -172,7 +180,7 @@ const renderingEngine = new RenderingEngine(renderingEngineId);
 
 // note we need to add the cornerstoneStreamingImageVolume: to
 // use the streaming volume loader
-const volumeId = 'cornerStreamingImageVolume: myVolume';
+const volumeId = 'cornerstoneStreamingImageVolume: myVolume';
 
 // Define a volume in memory
 const volume = await volumeLoader.createAndCacheVolume(volumeId, {
@@ -188,7 +196,7 @@ const viewportInput = [
     element: element1,
     type: ViewportType.ORTHOGRAPHIC,
     defaultOptions: {
-      orientation: ORIENTATION.AXIAL,
+      orientation: Enums.OrientationAxis.AXIAL,
     },
   },
   {
@@ -196,7 +204,7 @@ const viewportInput = [
     element: element2,
     type: ViewportType.ORTHOGRAPHIC,
     defaultOptions: {
-      orientation: ORIENTATION.SAGITTAL,
+      orientation: Enums.OrientationAxis.SAGITTAL,
     },
   },
 ];
@@ -244,7 +252,6 @@ renderingEngine.renderViewports([viewportId1, viewportId2]);
 ```
 
 You should be able to annotate images with the tools you added.
-
 
 ![](../assets/tutorial-annotation.png)
 

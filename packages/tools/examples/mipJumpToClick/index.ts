@@ -4,7 +4,6 @@ import {
   Enums,
   setVolumesForViewports,
   Types,
-  CONSTANTS,
 } from '@cornerstonejs/core';
 import {
   initDemo,
@@ -20,7 +19,6 @@ console.warn(
 );
 
 const { ViewportType, BlendModes } = Enums;
-const { ORIENTATION } = CONSTANTS;
 
 const {
   ToolGroupManager,
@@ -119,7 +117,6 @@ async function run() {
     SeriesInstanceUID:
       '1.3.6.1.4.1.14519.5.2.1.7009.2403.226151125820845824875394858561',
     wadoRsRoot,
-    type: 'VOLUME',
   });
 
   const ptImageIds = await createImageIdsAndCacheMetaData({
@@ -127,7 +124,6 @@ async function run() {
     SeriesInstanceUID:
       '1.3.6.1.4.1.14519.5.2.1.7009.2403.879445243400782656317561081015',
     wadoRsRoot,
-    type: 'VOLUME',
   });
 
   // Instantiate a rendering engine
@@ -142,7 +138,7 @@ async function run() {
       type: ViewportType.ORTHOGRAPHIC,
       element: element1,
       defaultOptions: {
-        orientation: ORIENTATION.SAGITTAL,
+        orientation: Enums.OrientationAxis.SAGITTAL,
         background: <Types.Point3>[0.2, 0, 0.2],
       },
     },
@@ -151,7 +147,7 @@ async function run() {
       type: ViewportType.ORTHOGRAPHIC,
       element: element2,
       defaultOptions: {
-        orientation: ORIENTATION.CORONAL,
+        orientation: Enums.OrientationAxis.CORONAL,
         background: <Types.Point3>[0.2, 0, 0.2],
       },
     },
@@ -160,7 +156,7 @@ async function run() {
       type: ViewportType.ORTHOGRAPHIC,
       element: element3,
       defaultOptions: {
-        orientation: ORIENTATION.SAGITTAL,
+        orientation: Enums.OrientationAxis.SAGITTAL,
         background: <Types.Point3>[0.2, 0, 0.2],
       },
     },

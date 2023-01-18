@@ -11,13 +11,11 @@ const {
   setVolumesForViewports,
   eventTarget,
   imageLoader,
-  CONSTANTS,
 } = cornerstone3D;
 
 const { unregisterAllImageLoaders } = imageLoader;
 const { registerVolumeLoader, createAndCacheVolume } = volumeLoader;
 const { ViewportType } = Enums;
-const { ORIENTATION } = CONSTANTS;
 
 const {
   ToolGroupManager,
@@ -39,8 +37,6 @@ const toolGroupId = 'toolGroupId-segmentationState_test';
 
 const viewportId = 'VIEWPORT';
 
-const AXIAL = 'AXIAL';
-
 const LABELMAP = SegmentationRepresentations.Labelmap;
 
 function createViewport(renderingEngine, orientation) {
@@ -56,7 +52,7 @@ function createViewport(renderingEngine, orientation) {
       type: ViewportType.ORTHOGRAPHIC,
       element,
       defaultOptions: {
-        orientation: ORIENTATION[orientation],
+        orientation,
         background: [1, 0, 1], // pinkish background
       },
     },
@@ -96,7 +92,6 @@ describe('Segmentation State -- ', () => {
       metaData.removeProvider(fakeMetaDataProvider);
       unregisterAllImageLoaders();
       ToolGroupManager.destroyToolGroup(toolGroupId);
-      ('');
       this.DOMElements.forEach((el) => {
         if (el.parentNode) {
           el.parentNode.removeChild(el);
@@ -105,7 +100,10 @@ describe('Segmentation State -- ', () => {
     });
 
     it('should successfully create a global and toolGroup state when segmentation is added', function (done) {
-      const element = createViewport(this.renderingEngine, AXIAL);
+      const element = createViewport(
+        this.renderingEngine,
+        Enums.OrientationAxis.AXIAL
+      );
       this.DOMElements.push(element);
 
       const volumeId = 'fakeVolumeLoader:volumeURI_100_100_10_1_1_1_0';
@@ -159,10 +157,15 @@ describe('Segmentation State -- ', () => {
           expect(segRepresentation.segmentationId).toBe(segVolumeId);
           expect(segRepresentation.type).toBe(LABELMAP);
           expect(segRepresentation.config).toBeDefined();
-
-          done();
         }
       );
+
+      // wait for segmentation render to call done to ensure
+      // all events have been fired and we don't get errors for rendering while
+      // the data is decached
+      eventTarget.addEventListener(Events.SEGMENTATION_RENDERED, (evt) => {
+        done();
+      });
 
       this.segToolGroup.addViewport(vp.id, this.renderingEngine.id);
 
@@ -204,7 +207,10 @@ describe('Segmentation State -- ', () => {
     });
 
     it('should successfully create a global default representation configuration', function (done) {
-      const element = createViewport(this.renderingEngine, AXIAL);
+      const element = createViewport(
+        this.renderingEngine,
+        Enums.OrientationAxis.AXIAL
+      );
       this.DOMElements.push(element);
 
       const volumeId = 'fakeVolumeLoader:volumeURI_100_100_10_1_1_1_0';
@@ -233,12 +239,10 @@ describe('Segmentation State -- ', () => {
         );
       });
 
-      eventTarget.addEventListener(
-        Events.SEGMENTATION_REPRESENTATION_MODIFIED,
-        (evt) => {
-          done();
-        }
-      );
+      // wait for segmentation rendered event
+      eventTarget.addEventListener(Events.SEGMENTATION_RENDERED, (evt) => {
+        done();
+      });
 
       this.segToolGroup.addViewport(vp.id, this.renderingEngine.id);
 

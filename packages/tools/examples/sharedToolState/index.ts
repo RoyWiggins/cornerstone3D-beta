@@ -3,7 +3,6 @@ import {
   Types,
   volumeLoader,
   Enums,
-  CONSTANTS,
 } from '@cornerstonejs/core';
 import {
   initDemo,
@@ -25,7 +24,6 @@ const {
 } = cornerstoneTools;
 
 const { ViewportType } = Enums;
-const { ORIENTATION } = CONSTANTS;
 const { MouseBindings } = csToolsEnums;
 
 // Define a unique id for the volume
@@ -84,7 +82,7 @@ async function run() {
   const toolGroup = ToolGroupManager.createToolGroup(toolGroupId);
 
   // Add the tools to the tool group and specify which volume they are pointing at
-  toolGroup.addTool(LengthTool.toolName, { configuration: { volumeId } });
+  toolGroup.addTool(LengthTool.toolName, { volumeId });
   toolGroup.addTool(StackScrollMouseWheelTool.toolName);
 
   // Set the initial state of the tools, here we set one tool active on left click.
@@ -107,7 +105,6 @@ async function run() {
     SeriesInstanceUID:
       '1.3.6.1.4.1.14519.5.2.1.7009.2403.226151125820845824875394858561',
     wadoRsRoot: 'https://d3t6nz73ql33tx.cloudfront.net/dicomweb',
-    type: 'VOLUME',
   });
 
   const stackImageIds = await createImageIdsAndCacheMetaData({
@@ -116,7 +113,6 @@ async function run() {
     SeriesInstanceUID:
       '1.3.6.1.4.1.14519.5.2.1.7009.2403.226151125820845824875394858561',
     wadoRsRoot: 'https://d3t6nz73ql33tx.cloudfront.net/dicomweb',
-    type: 'STACK',
   });
 
   const smallVolumeImageIds = [volumeImageIds[42], volumeImageIds[43]]; // Small bit of the body
@@ -135,7 +131,7 @@ async function run() {
       type: ViewportType.ORTHOGRAPHIC,
       element: element1,
       defaultOptions: {
-        orientation: ORIENTATION.AXIAL,
+        orientation: Enums.OrientationAxis.AXIAL,
         background: <Types.Point3>[0.2, 0, 0.2],
       },
     },

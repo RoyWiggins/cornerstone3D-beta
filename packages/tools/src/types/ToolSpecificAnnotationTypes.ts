@@ -256,3 +256,19 @@ export interface AngleAnnotation extends Annotation {
     };
   };
 }
+
+export interface ReferenceCursor extends Annotation {
+  data: {
+    handles: {
+      points: [Types.Point3];
+    };
+  };
+}
+
+export interface ReferenceLineAnnotation extends Annotation {
+  data: {
+    handles: {
+      points: Types.Point3[];
+    };
+  };
+}

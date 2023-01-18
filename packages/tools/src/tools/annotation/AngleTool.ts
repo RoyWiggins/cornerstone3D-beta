@@ -343,7 +343,6 @@ class AngleTool extends AnnotationTool {
     }
 
     this.angleStartedNotYetCompleted = false;
-    annotation.highlighted = false;
     data.handles.activeHandleIndex = null;
 
     this._deactivateModify(element);
@@ -463,6 +462,7 @@ class AngleTool extends AnnotationTool {
       }
 
       this.editData = null;
+      this.angleStartedNotYetCompleted = false;
       return annotation.annotationUID;
     }
   };

@@ -47,13 +47,17 @@ class AnnotationRenderingEngine {
    * Remove the viewport's HTMLDivElement from subsequent annotation renders
    * @param viewportId - Viewport Unique identifier
    */
-  public removeViewportElement(viewportId: string) {
+  public removeViewportElement(viewportId: string, element: HTMLDivElement) {
     this._viewportElements.delete(viewportId);
 
-    // Reset the request animation frame if no enabled elements
-    if (this._viewportElements.size === 0) {
-      this._reset();
-    }
+    // delete element from needsRender if element exist
+    this._needsRender.delete(element);
+
+    // I don' think there is any disadvantage to canceling the animation frame
+    // and resetting the flags on viewport's element removal, since the removeVIewportElement
+    // might be as a result of reEnabling the element (in re-enable we disable first), hence the need to render the
+    // new one while removing the old one
+    this._reset();
   }
 
   /**
@@ -102,10 +106,25 @@ class AnnotationRenderingEngine {
     }
   };
 
-  private _setViewportsToBeRenderedNextFrame(elements: HTMLDivElement[]) {
-    // Add the viewports to the set of flagged viewports
+  private _setAllViewportsToBeRenderedNextFrame() {
+    const elements = [...this._viewportElements.values()];
+
     elements.forEach((element) => {
       this._needsRender.add(element);
+    });
+
+    this._renderFlaggedViewports();
+  }
+
+  private _setViewportsToBeRenderedNextFrame(elements: HTMLDivElement[]) {
+    const elementsEnabled = [...this._viewportElements.values()];
+
+    // Add the viewports to the set of flagged viewports
+    elements.forEach((element) => {
+      // only enabledElement need to render
+      if (elementsEnabled.indexOf(element) !== -1) {
+        this._needsRender.add(element);
+      }
     });
 
     // Render any flagged viewports
@@ -197,6 +216,8 @@ class AnnotationRenderingEngine {
     this._needsRender.clear();
     this._animationFrameSet = false;
     this._animationFrameHandle = null;
+
+    this._setAllViewportsToBeRenderedNextFrame();
   }
 }
 

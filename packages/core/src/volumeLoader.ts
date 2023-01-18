@@ -12,7 +12,7 @@ import Events from './enums/Events';
 import eventTarget from './eventTarget';
 import triggerEvent from './utilities/triggerEvent';
 import { uuidv4 } from './utilities';
-import { Point3, Metadata, EventTypes } from './types';
+import { Point3, Metadata, EventTypes, Mat3 } from './types';
 
 interface VolumeLoaderOptions {
   imageIds: Array<string>;
@@ -22,6 +22,7 @@ interface DerivedVolumeOptions {
   volumeId: string;
   targetBuffer?: {
     type: 'Float32Array' | 'Uint8Array';
+    sharedArrayBuffer?: boolean;
   };
 }
 interface LocalVolumeOptions {
@@ -30,7 +31,7 @@ interface LocalVolumeOptions {
   dimensions: Point3;
   spacing: Point3;
   origin: Point3;
-  direction: Float32Array;
+  direction: Mat3;
 }
 
 function createInternalVTKRepresentation({
@@ -204,10 +205,10 @@ export async function createAndCacheVolume(
  *
  * @returns ImageVolume
  */
-export function createAndCacheDerivedVolume(
+export async function createAndCacheDerivedVolume(
   referencedVolumeId: string,
   options: DerivedVolumeOptions
-): ImageVolume {
+): Promise<ImageVolume> {
   const referencedVolume = cache.getVolume(referencedVolumeId);
 
   if (!referencedVolume) {
@@ -252,7 +253,13 @@ export function createAndCacheDerivedVolume(
     throw new Error(Events.CACHE_SIZE_EXCEEDED);
   }
 
-  const volumeScalarData = new TypedArray(scalarLength);
+  let volumeScalarData;
+  if (targetBuffer?.sharedArrayBuffer) {
+    const buffer = new SharedArrayBuffer(numBytes);
+    volumeScalarData = new TypedArray(buffer);
+  } else {
+    volumeScalarData = new TypedArray(scalarLength);
+  }
 
   // Todo: handle more than one component for segmentation (RGB)
   const scalarArray = vtkDataArray.newInstance({
@@ -285,7 +292,8 @@ export function createAndCacheDerivedVolume(
   const volumeLoadObject = {
     promise: Promise.resolve(derivedVolume),
   };
-  cache.putVolumeLoadObject(volumeId, volumeLoadObject);
+
+  await cache.putVolumeLoadObject(volumeId, volumeLoadObject);
 
   return derivedVolume;
 }
@@ -325,7 +333,7 @@ export function createLocalVolume(
   const cachedVolume = cache.getVolume(volumeId);
 
   if (cachedVolume) {
-    return cachedVolume;
+    return cachedVolume as ImageVolume;
   }
 
   const scalarLength = dimensions[0] * dimensions[1] * dimensions[2];

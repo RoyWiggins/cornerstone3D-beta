@@ -1,10 +1,10 @@
-import { StackViewport, VolumeViewport, cache } from '@cornerstonejs/core';
-import type { Types } from '@cornerstonejs/core';
+import { StackViewport, VolumeViewport, utilities } from '@cornerstonejs/core';
+import { Types } from '@cornerstonejs/core';
 import deepMerge from '../../utilities/deepMerge';
 import { ToolModes } from '../../enums';
 import { InteractionTypes, ToolProps, PublicToolProps } from '../../types';
 
-interface IBaseTool {
+export interface IBaseTool {
   /** ToolGroup ID the tool instance belongs to */
   toolGroupId: string;
   /** Tool supported interaction types */
@@ -143,18 +143,37 @@ abstract class BaseTool implements IBaseTool {
   ): Types.IImageData | Types.CPUIImageData | Types.IImageVolume {
     if (targetId.startsWith('imageId:')) {
       const imageId = targetId.split('imageId:')[1];
-      const viewports = renderingEngine.getStackViewports();
-      const viewport = viewports.find((viewport) =>
-        viewport.hasImageId(imageId)
+      const imageURI = utilities.imageIdToURI(imageId);
+      let viewports = utilities.getViewportsWithImageURI(
+        imageURI,
+        renderingEngine.id
       );
-      return viewport.getImageData();
-    } else if (targetId.startsWith('volumeId:')) {
-      // Todo: Why we are not getting the imageData from the viewport by .getImageData()?
-      const volumeId = targetId.split('volumeId:')[1];
 
-      // We can always assume for the volume, the pixel spacing exists and
-      // is the same for all the slices.
-      return { ...cache.getVolume(volumeId), hasPixelSpacing: true };
+      if (!viewports || !viewports.length) {
+        return;
+      }
+
+      viewports = viewports.filter((viewport) => {
+        return viewport.getCurrentImageId() === imageId;
+      });
+
+      if (!viewports || !viewports.length) {
+        return;
+      }
+
+      return viewports[0].getImageData();
+    } else if (targetId.startsWith('volumeId:')) {
+      const volumeId = targetId.split('volumeId:')[1];
+      const viewports = utilities.getViewportsWithVolumeId(
+        volumeId,
+        renderingEngine.id
+      );
+
+      if (!viewports || !viewports.length) {
+        return;
+      }
+
+      return viewports[0].getImageData();
     } else {
       throw new Error(
         'getTargetIdImage: targetId must start with "imageId:" or "volumeId:"'

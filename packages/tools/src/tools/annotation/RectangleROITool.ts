@@ -355,7 +355,6 @@ class RectangleROITool extends AnnotationTool {
       return;
     }
 
-    annotation.highlighted = false;
     data.handles.activeHandleIndex = null;
 
     this._deactivateModify(element);
@@ -752,6 +751,7 @@ class RectangleROITool extends AnnotationTool {
         );
       }
 
+      const dataId = `${annotationUID}-rect`;
       const rectangleUID = '0';
       drawRectSvg(
         svgDrawingHelper,
@@ -763,7 +763,8 @@ class RectangleROITool extends AnnotationTool {
           color,
           lineDash,
           lineWidth,
-        }
+        },
+        dataId
       );
 
       renderStatus = true;
@@ -891,6 +892,13 @@ class RectangleROITool extends AnnotationTool {
       const targetId = targetIds[i];
 
       const image = this.getTargetIdImage(targetId, renderingEngine);
+
+      // If image does not exists for the targetId, skip. This can be due
+      // to various reasons such as if the target was a volumeViewport, and
+      // the volumeViewport has been decached in the meantime.
+      if (!image) {
+        continue;
+      }
 
       const { dimensions, scalarData, imageData, metadata, hasPixelSpacing } =
         image;

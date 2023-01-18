@@ -5,6 +5,7 @@ import { triggerEvent, uuidv4 } from '../utilities';
 import { vtkOffscreenMultiRenderWindow } from './vtkClasses';
 import ViewportType from '../enums/ViewportType';
 import VolumeViewport from './VolumeViewport';
+import BaseVolumeViewport from './BaseVolumeViewport';
 import StackViewport from './StackViewport';
 import viewportTypeUsesCustomRenderingPipeline from './helpers/viewportTypeUsesCustomRenderingPipeline';
 import getOrCreateCanvas from './helpers/getOrCreateCanvas';
@@ -19,7 +20,8 @@ import type {
   InternalViewportInput,
   NormalizedViewportInput,
 } from '../types/IViewport';
-import ORIENTATION from '../constants/orientation';
+import { OrientationAxis } from '../enums';
+import VolumeViewport3D from './VolumeViewport3D';
 
 type ViewportDisplayCoords = {
   sxStartDisplayCoords: number;
@@ -117,7 +119,7 @@ class RenderingEngine implements IRenderingEngine {
    *  type: ViewportType.ORTHOGRAPHIC,
    *  element,
    *  defaultOptions: {
-   *    orientation: ORIENTATION[orientation],
+   *    orientation: Enums.OrientationAxis.AXIAL,
    *    background: [1, 0, 1],
    *  },
    * })
@@ -210,6 +212,7 @@ class RenderingEngine implements IRenderingEngine {
 
     // 5. Remove the requested viewport from the rendering engine
     this._removeViewport(viewportId);
+    viewport.isDisabled = true;
 
     // 6. Avoid rendering for the disabled viewport
     this._needsRender.delete(viewportId);
@@ -225,9 +228,8 @@ class RenderingEngine implements IRenderingEngine {
     // This is because we are only resizing the offscreen canvas to deal with the element
     // which was removed, and do not wish to alter the current state of any other currently enabled element
     const immediate = true;
-    const resetPan = false;
-    const resetZoom = false;
-    this.resize(immediate, resetPan, resetZoom);
+    const keepCamera = true;
+    this.resize(immediate, keepCamera);
   }
 
   /**
@@ -242,7 +244,7 @@ class RenderingEngine implements IRenderingEngine {
    *     type: ViewportType.ORTHOGRAPHIC,
    *     element: document.getElementById('axialDiv'),
    *     defaultOptions: {
-   *       orientation: ORIENTATION.AXIAL,
+   *       orientation: Enums.OrientationAxis.AXIAL,
    *     },
    *   },
    *   {
@@ -250,7 +252,7 @@ class RenderingEngine implements IRenderingEngine {
    *     type: ViewportType.ORTHOGRAPHIC,
    *     element: document.getElementById('sagittalDiv'),
    *     defaultOptions: {
-   *       orientation: ORIENTATION.SAGITTAL,
+   *       orientation: Enums.OrientationAxis.SAGITTAL,
    *     },
    *   },
    *   {
@@ -258,7 +260,7 @@ class RenderingEngine implements IRenderingEngine {
    *     type: ViewportType.ORTHOGRAPHIC,
    *     element: document.getElementById('customOrientationDiv'),
    *     defaultOptions: {
-   *       orientation: { sliceNormal: [0, 0, 1], viewUp: [0, 1, 0] },
+   *       orientation: { viewPlaneNormal: [0, 0, 1], viewUp: [0, 1, 0] },
    *     },
    *   },
    * ])
@@ -304,11 +306,9 @@ class RenderingEngine implements IRenderingEngine {
    * This is left as an app level concern as one might want to debounce the changes, or the like.
    *
    * @param immediate - Whether all of the viewports should be rendered immediately.
-   * @param resetPan - Whether the viewport should reset its pan.
-   * @param resetZoom - Whether the viewport should reset its zoom.
-   * its zoom gets reset upon resize.
+   * @param keepCamera - Whether to keep the camera for other viewports while resizing the offscreen canvas
    */
-  public resize(immediate = true, resetPan = true, resetZoom = true): void {
+  public resize(immediate = true, keepCamera = true): void {
     this._throwIfDestroyed();
     // 1. Get the viewports' canvases
     const viewports = this._getViewportsAsArray();
@@ -324,17 +324,11 @@ class RenderingEngine implements IRenderingEngine {
       }
     });
 
-    this._resizeVTKViewports(
-      vtkDrivenViewports,
-      resetPan,
-      resetZoom,
-      immediate
-    );
+    this._resizeVTKViewports(vtkDrivenViewports, keepCamera, immediate);
 
     this._resizeUsingCustomResizeHandler(
       customRenderingViewports,
-      resetPan,
-      resetZoom,
+      keepCamera,
       immediate
     );
   }
@@ -388,8 +382,8 @@ class RenderingEngine implements IRenderingEngine {
 
     const isVolumeViewport = (
       viewport: IStackViewport | IVolumeViewport
-    ): viewport is VolumeViewport => {
-      return viewport instanceof VolumeViewport;
+    ): viewport is BaseVolumeViewport => {
+      return viewport instanceof BaseVolumeViewport;
     };
 
     return viewports.filter(isVolumeViewport);
@@ -451,16 +445,22 @@ class RenderingEngine implements IRenderingEngine {
       return;
     }
 
-    this._reset();
-    renderingEngineCache.delete(this.id);
-
+    // remove vtk rendered first before resetting the viewport
     if (!this.useCPURendering) {
+      const viewports = this._getViewportsAsArray();
+      viewports.forEach((vp) => {
+        this.offscreenMultiRenderWindow.removeRenderer(vp.id);
+      });
+
       // Free up WebGL resources
       this.offscreenMultiRenderWindow.delete();
 
       // Make sure all references go stale and are garbage collected.
       delete this.offscreenMultiRenderWindow;
     }
+
+    this._reset();
+    renderingEngineCache.delete(this.id);
 
     this.hasBeenDestroyed = true;
   }
@@ -507,7 +507,7 @@ class RenderingEngine implements IRenderingEngine {
       if (type === ViewportType.ORTHOGRAPHIC) {
         options = {
           ...options,
-          orientation: ORIENTATION.AXIAL,
+          orientation: OrientationAxis.AXIAL,
         };
       }
     }
@@ -534,8 +534,7 @@ class RenderingEngine implements IRenderingEngine {
 
   private _resizeUsingCustomResizeHandler(
     customRenderingViewports: StackViewport[],
-    resetPan = true,
-    resetZoom = true,
+    keepCamera = true,
     immediate = true
   ) {
     // 1. If viewport has a custom resize method, call it here.
@@ -545,7 +544,12 @@ class RenderingEngine implements IRenderingEngine {
 
     // 3. Reset viewport cameras
     customRenderingViewports.forEach((vp) => {
-      vp.resetCamera(resetPan, resetZoom);
+      const prevCamera = vp.getCamera();
+      vp.resetCamera();
+
+      if (keepCamera) {
+        vp.setCamera(prevCamera);
+      }
     });
 
     // 2. If render is immediate: Render all
@@ -556,8 +560,7 @@ class RenderingEngine implements IRenderingEngine {
 
   private _resizeVTKViewports(
     vtkDrivenViewports: Array<IStackViewport | IVolumeViewport>,
-    resetPan = true,
-    resetZoom = true,
+    keepCamera = true,
     immediate = true
   ) {
     const canvasesDrivenByVtkJs = vtkDrivenViewports.map((vp) => vp.canvas);
@@ -577,7 +580,18 @@ class RenderingEngine implements IRenderingEngine {
 
     // 3. Reset viewport cameras
     vtkDrivenViewports.forEach((vp: IStackViewport | IVolumeViewport) => {
-      vp.resetCamera(resetPan, resetZoom);
+      const canvas = getOrCreateCanvas(vp.element);
+      const rect = canvas.getBoundingClientRect();
+      const devicePixelRatio = window.devicePixelRatio || 1;
+      canvas.width = rect.width * devicePixelRatio;
+      canvas.height = rect.height * devicePixelRatio;
+
+      const prevCamera = vp.getCamera();
+      vp.resetCamera();
+
+      if (keepCamera) {
+        vp.setCamera(prevCamera);
+      }
     });
 
     // 4. If render is immediate: Render all
@@ -737,6 +751,8 @@ class RenderingEngine implements IRenderingEngine {
     ) {
       // 4.b Create a volume viewport
       viewport = new VolumeViewport(viewportInput);
+    } else if (type === ViewportType.VOLUME_3D) {
+      viewport = new VolumeViewport3D(viewportInput);
     } else {
       throw new Error(`Viewport Type ${type} is not supported`);
     }
@@ -1225,7 +1241,7 @@ class RenderingEngine implements IRenderingEngine {
    *
    * @param viewport - The `Viewport` to render.
    */
-  private _resetViewport(viewport) {
+  private _resetViewport(viewport: IStackViewport | IVolumeViewport) {
     const renderingEngineId = this.id;
 
     const { element, canvas, id: viewportId } = viewport;

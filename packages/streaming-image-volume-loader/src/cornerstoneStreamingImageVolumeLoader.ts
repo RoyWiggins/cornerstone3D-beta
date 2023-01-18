@@ -9,6 +9,7 @@ const { createUint8SharedArray, createFloat32SharedArray } = utilities;
 interface IVolumeLoader {
   promise: Promise<StreamingImageVolume>;
   cancel: () => void;
+  decache: () => void;
 }
 
 /**
@@ -74,11 +75,11 @@ function cornerstoneStreamingImageVolumeLoader(
   // Spacing goes [1] then [0], as [1] is column spacing (x) and [0] is row spacing (y)
   const spacing = <Types.Point3>[PixelSpacing[1], PixelSpacing[0], zSpacing];
   const dimensions = <Types.Point3>[Columns, Rows, numFrames];
-  const direction = new Float32Array([
+  const direction = [
     ...rowCosineVec,
     ...colCosineVec,
     ...scanAxisNormal,
-  ]);
+  ] as Types.Mat3;
   const signed = PixelRepresentation === 1;
 
   // Check if it fits in the cache before we allocate data
@@ -135,7 +136,7 @@ function cornerstoneStreamingImageVolumeLoader(
       break;
   }
 
-  const streamingImageVolume = new StreamingImageVolume(
+  let streamingImageVolume = new StreamingImageVolume(
     // ImageVolume properties
     {
       volumeId,
@@ -162,6 +163,11 @@ function cornerstoneStreamingImageVolumeLoader(
 
   return {
     promise: Promise.resolve(streamingImageVolume),
+    decache: () => {
+      streamingImageVolume.vtkOpenGLTexture.delete();
+      streamingImageVolume.scalarData = null;
+      streamingImageVolume = null;
+    },
     cancel: () => {
       streamingImageVolume.cancelLoading();
     },

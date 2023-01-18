@@ -3,6 +3,348 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.8.3](https://github.com/cornerstonejs/cornerstone3D-beta/compare/@cornerstonejs/streaming-image-volume-loader@0.8.2...@cornerstonejs/streaming-image-volume-loader@0.8.3) (2023-01-11)
+
+**Note:** Version bump only for package @cornerstonejs/streaming-image-volume-loader
+
+
+
+
+
+## [0.8.2](https://github.com/cornerstonejs/cornerstone3D-beta/compare/@cornerstonejs/streaming-image-volume-loader@0.8.1...@cornerstonejs/streaming-image-volume-loader@0.8.2) (2023-01-10)
+
+
+### Bug Fixes
+
+* streaming loader package json for entries ([#357](https://github.com/cornerstonejs/cornerstone3D-beta/issues/357)) ([9a5fbf1](https://github.com/cornerstonejs/cornerstone3D-beta/commit/9a5fbf1cb60193b4be987e828f29201133bc9106))
+
+
+
+
+
+## [0.8.1](https://github.com/cornerstonejs/cornerstone3D-beta/compare/@cornerstonejs/streaming-image-volume-loader@0.8.0...@cornerstonejs/streaming-image-volume-loader@0.8.1) (2023-01-10)
+
+
+### Bug Fixes
+
+* no need for wadors header provider in the demo ([#356](https://github.com/cornerstonejs/cornerstone3D-beta/issues/356)) ([92891cf](https://github.com/cornerstonejs/cornerstone3D-beta/commit/92891cf4fd8f502b1dd0908702e46fb3556bacd7))
+
+
+
+
+
+# [0.8.0](https://github.com/cornerstonejs/cornerstone3D-beta/compare/@cornerstonejs/streaming-image-volume-loader@0.7.0...@cornerstonejs/streaming-image-volume-loader@0.8.0) (2023-01-06)
+
+
+### Features
+
+* **volumeLoader:** no need for streaming-wadors imageLoader anymore since streaming volume loader will use cswil wadors image loader ([#340](https://github.com/cornerstonejs/cornerstone3D-beta/issues/340)) ([0b5f785](https://github.com/cornerstonejs/cornerstone3D-beta/commit/0b5f785041a6f92443b58f6d72c8c965a29b35fc))
+
+
+
+
+
+# [0.7.0](https://github.com/cornerstonejs/cornerstone3D-beta/compare/@cornerstonejs/streaming-image-volume-loader@0.6.12...@cornerstonejs/streaming-image-volume-loader@0.7.0) (2023-01-06)
+
+
+### Features
+
+* improved example runner to handle casing and partial match ([#347](https://github.com/cornerstonejs/cornerstone3D-beta/issues/347)) ([9e8fa12](https://github.com/cornerstonejs/cornerstone3D-beta/commit/9e8fa122f766c1fceff4e3d4fe3cd0f68963c92b))
+
+
+
+
+
+## [0.6.12](https://github.com/cornerstonejs/cornerstone3D-beta/compare/@cornerstonejs/streaming-image-volume-loader@0.6.11...@cornerstonejs/streaming-image-volume-loader@0.6.12) (2022-12-09)
+
+**Note:** Version bump only for package @cornerstonejs/streaming-image-volume-loader
+
+
+
+
+
+## [0.6.11](https://github.com/cornerstonejs/cornerstone3D-beta/compare/@cornerstonejs/streaming-image-volume-loader@0.6.10...@cornerstonejs/streaming-image-volume-loader@0.6.11) (2022-12-01)
+
+**Note:** Version bump only for package @cornerstonejs/streaming-image-volume-loader
+
+
+
+
+
+## [0.6.10](https://github.com/cornerstonejs/cornerstone3D-beta/compare/@cornerstonejs/streaming-image-volume-loader@0.6.9...@cornerstonejs/streaming-image-volume-loader@0.6.10) (2022-12-01)
+
+**Note:** Version bump only for package @cornerstonejs/streaming-image-volume-loader
+
+
+
+
+
+## [0.6.9](https://github.com/cornerstonejs/cornerstone3D-beta/compare/@cornerstonejs/streaming-image-volume-loader@0.6.8...@cornerstonejs/streaming-image-volume-loader@0.6.9) (2022-12-01)
+
+**Note:** Version bump only for package @cornerstonejs/streaming-image-volume-loader
+
+
+
+
+
+## [0.6.8](https://github.com/cornerstonejs/cornerstone3D-beta/compare/@cornerstonejs/streaming-image-volume-loader@0.6.7...@cornerstonejs/streaming-image-volume-loader@0.6.8) (2022-12-01)
+
+
+### Bug Fixes
+
+* htj2k and keymodifier ([#313](https://github.com/cornerstonejs/cornerstone3D-beta/issues/313)) ([48bd8a1](https://github.com/cornerstonejs/cornerstone3D-beta/commit/48bd8a14b81e31cba9f3237b0b68b7082bd66892))
+
+
+
+
+
+## [0.6.7](https://github.com/cornerstonejs/cornerstone3D-beta/compare/@cornerstonejs/streaming-image-volume-loader@0.6.6...@cornerstonejs/streaming-image-volume-loader@0.6.7) (2022-11-23)
+
+**Note:** Version bump only for package @cornerstonejs/streaming-image-volume-loader
+
+
+
+
+
+## [0.6.6](https://github.com/cornerstonejs/cornerstone3D-beta/compare/@cornerstonejs/streaming-image-volume-loader@0.6.5...@cornerstonejs/streaming-image-volume-loader@0.6.6) (2022-11-23)
+
+**Note:** Version bump only for package @cornerstonejs/streaming-image-volume-loader
+
+
+
+
+
+## [0.6.5](https://github.com/cornerstonejs/cornerstone3D-beta/compare/@cornerstonejs/streaming-image-volume-loader@0.6.4...@cornerstonejs/streaming-image-volume-loader@0.6.5) (2022-11-21)
+
+**Note:** Version bump only for package @cornerstonejs/streaming-image-volume-loader
+
+
+
+
+
+## [0.6.4](https://github.com/cornerstonejs/cornerstone3D-beta/compare/@cornerstonejs/streaming-image-volume-loader@0.6.3...@cornerstonejs/streaming-image-volume-loader@0.6.4) (2022-11-19)
+
+**Note:** Version bump only for package @cornerstonejs/streaming-image-volume-loader
+
+
+
+
+
+## [0.6.3](https://github.com/cornerstonejs/cornerstone3D-beta/compare/@cornerstonejs/streaming-image-volume-loader@0.6.2...@cornerstonejs/streaming-image-volume-loader@0.6.3) (2022-11-18)
+
+**Note:** Version bump only for package @cornerstonejs/streaming-image-volume-loader
+
+
+
+
+
+## [0.6.2](https://github.com/cornerstonejs/cornerstone3D-beta/compare/@cornerstonejs/streaming-image-volume-loader@0.6.1...@cornerstonejs/streaming-image-volume-loader@0.6.2) (2022-11-17)
+
+**Note:** Version bump only for package @cornerstonejs/streaming-image-volume-loader
+
+
+
+
+
+## [0.6.1](https://github.com/cornerstonejs/cornerstone3D-beta/compare/@cornerstonejs/streaming-image-volume-loader@0.6.0...@cornerstonejs/streaming-image-volume-loader@0.6.1) (2022-11-11)
+
+**Note:** Version bump only for package @cornerstonejs/streaming-image-volume-loader
+
+
+
+
+
+# [0.6.0](https://github.com/cornerstonejs/cornerstone3D-beta/compare/@cornerstonejs/streaming-image-volume-loader@0.5.19...@cornerstonejs/streaming-image-volume-loader@0.6.0) (2022-11-11)
+
+
+### Features
+
+* Add segmentSpecificConfiguration and add outlineOpacity config for Segmentation ([#285](https://github.com/cornerstonejs/cornerstone3D-beta/issues/285)) ([92fb495](https://github.com/cornerstonejs/cornerstone3D-beta/commit/92fb49594cfc3219f761e905ba765acaddbe1e1a))
+
+
+
+
+
+## [0.5.19](https://github.com/cornerstonejs/cornerstone3D-beta/compare/@cornerstonejs/streaming-image-volume-loader@0.5.18...@cornerstonejs/streaming-image-volume-loader@0.5.19) (2022-11-09)
+
+**Note:** Version bump only for package @cornerstonejs/streaming-image-volume-loader
+
+
+
+
+
+## [0.5.18](https://github.com/cornerstonejs/cornerstone3D-beta/compare/@cornerstonejs/streaming-image-volume-loader@0.5.17...@cornerstonejs/streaming-image-volume-loader@0.5.18) (2022-11-04)
+
+**Note:** Version bump only for package @cornerstonejs/streaming-image-volume-loader
+
+
+
+
+
+## [0.5.17](https://github.com/cornerstonejs/cornerstone3D-beta/compare/@cornerstonejs/streaming-image-volume-loader@0.5.16...@cornerstonejs/streaming-image-volume-loader@0.5.17) (2022-11-04)
+
+**Note:** Version bump only for package @cornerstonejs/streaming-image-volume-loader
+
+
+
+
+
+## [0.5.16](https://github.com/cornerstonejs/cornerstone3D-beta/compare/@cornerstonejs/streaming-image-volume-loader@0.5.15...@cornerstonejs/streaming-image-volume-loader@0.5.16) (2022-11-04)
+
+**Note:** Version bump only for package @cornerstonejs/streaming-image-volume-loader
+
+
+
+
+
+## [0.5.15](https://github.com/cornerstonejs/cornerstone3D-beta/compare/@cornerstonejs/streaming-image-volume-loader@0.5.14...@cornerstonejs/streaming-image-volume-loader@0.5.15) (2022-11-01)
+
+**Note:** Version bump only for package @cornerstonejs/streaming-image-volume-loader
+
+
+
+
+
+## [0.5.14](https://github.com/cornerstonejs/cornerstone3D-beta/compare/@cornerstonejs/streaming-image-volume-loader@0.5.13...@cornerstonejs/streaming-image-volume-loader@0.5.14) (2022-10-31)
+
+**Note:** Version bump only for package @cornerstonejs/streaming-image-volume-loader
+
+
+
+
+
+## [0.5.13](https://github.com/cornerstonejs/cornerstone3D-beta/compare/@cornerstonejs/streaming-image-volume-loader@0.5.12...@cornerstonejs/streaming-image-volume-loader@0.5.13) (2022-10-28)
+
+**Note:** Version bump only for package @cornerstonejs/streaming-image-volume-loader
+
+
+
+
+
+## [0.5.12](https://github.com/cornerstonejs/cornerstone3D-beta/compare/@cornerstonejs/streaming-image-volume-loader@0.5.11...@cornerstonejs/streaming-image-volume-loader@0.5.12) (2022-10-28)
+
+**Note:** Version bump only for package @cornerstonejs/streaming-image-volume-loader
+
+
+
+
+
+## [0.5.11](https://github.com/cornerstonejs/cornerstone3D-beta/compare/@cornerstonejs/streaming-image-volume-loader@0.5.10...@cornerstonejs/streaming-image-volume-loader@0.5.11) (2022-10-27)
+
+**Note:** Version bump only for package @cornerstonejs/streaming-image-volume-loader
+
+
+
+
+
+## [0.5.10](https://github.com/cornerstonejs/cornerstone3D-beta/compare/@cornerstonejs/streaming-image-volume-loader@0.5.9...@cornerstonejs/streaming-image-volume-loader@0.5.10) (2022-10-25)
+
+**Note:** Version bump only for package @cornerstonejs/streaming-image-volume-loader
+
+
+
+
+
+## [0.5.9](https://github.com/cornerstonejs/cornerstone3D-beta/compare/@cornerstonejs/streaming-image-volume-loader@0.5.8...@cornerstonejs/streaming-image-volume-loader@0.5.9) (2022-10-25)
+
+
+### Bug Fixes
+
+* fixes the memory leak for volumes ([#253](https://github.com/cornerstonejs/cornerstone3D-beta/issues/253)) ([c863126](https://github.com/cornerstonejs/cornerstone3D-beta/commit/c863126fc1df3fa989e15da1a7eae43cf94b24d0))
+
+
+
+
+
+## [0.5.8](https://github.com/cornerstonejs/cornerstone3D-beta/compare/@cornerstonejs/streaming-image-volume-loader@0.5.7...@cornerstonejs/streaming-image-volume-loader@0.5.8) (2022-10-07)
+
+**Note:** Version bump only for package @cornerstonejs/streaming-image-volume-loader
+
+
+
+
+
+## [0.5.7](https://github.com/cornerstonejs/cornerstone3D-beta/compare/@cornerstonejs/streaming-image-volume-loader@0.5.6...@cornerstonejs/streaming-image-volume-loader@0.5.7) (2022-10-06)
+
+**Note:** Version bump only for package @cornerstonejs/streaming-image-volume-loader
+
+
+
+
+
+## [0.5.6](https://github.com/cornerstonejs/cornerstone3D-beta/compare/@cornerstonejs/streaming-image-volume-loader@0.5.5...@cornerstonejs/streaming-image-volume-loader@0.5.6) (2022-10-06)
+
+**Note:** Version bump only for package @cornerstonejs/streaming-image-volume-loader
+
+
+
+
+
+## [0.5.5](https://github.com/cornerstonejs/cornerstone3D-beta/compare/@cornerstonejs/streaming-image-volume-loader@0.5.4...@cornerstonejs/streaming-image-volume-loader@0.5.5) (2022-10-05)
+
+**Note:** Version bump only for package @cornerstonejs/streaming-image-volume-loader
+
+
+
+
+
+## [0.5.4](https://github.com/cornerstonejs/cornerstone3D-beta/compare/@cornerstonejs/streaming-image-volume-loader@0.5.3...@cornerstonejs/streaming-image-volume-loader@0.5.4) (2022-10-05)
+
+**Note:** Version bump only for package @cornerstonejs/streaming-image-volume-loader
+
+
+
+
+
+## [0.5.3](https://github.com/cornerstonejs/cornerstone3D-beta/compare/@cornerstonejs/streaming-image-volume-loader@0.5.2...@cornerstonejs/streaming-image-volume-loader@0.5.3) (2022-09-16)
+
+**Note:** Version bump only for package @cornerstonejs/streaming-image-volume-loader
+
+
+
+
+
+## [0.5.2](https://github.com/cornerstonejs/cornerstone3D-beta/compare/@cornerstonejs/streaming-image-volume-loader@0.5.1...@cornerstonejs/streaming-image-volume-loader@0.5.2) (2022-09-14)
+
+**Note:** Version bump only for package @cornerstonejs/streaming-image-volume-loader
+
+
+
+
+
+## [0.5.1](https://github.com/cornerstonejs/cornerstone3D-beta/compare/@cornerstonejs/streaming-image-volume-loader@0.5.0...@cornerstonejs/streaming-image-volume-loader@0.5.1) (2022-09-08)
+
+
+### Bug Fixes
+
+* drag probe appearing unnecessarily on all viewports ([#204](https://github.com/cornerstonejs/cornerstone3D-beta/issues/204)) ([c292c05](https://github.com/cornerstonejs/cornerstone3D-beta/commit/c292c05eecf17a6edbdcab5aa5a604304ef3d2e5))
+
+
+
+
+
+# [0.5.0](https://github.com/cornerstonejs/cornerstone3D-beta/compare/@cornerstonejs/streaming-image-volume-loader@0.4.23...@cornerstonejs/streaming-image-volume-loader@0.5.0) (2022-09-08)
+
+
+### Features
+
+* orientation on volumeViewport can be optional ([#203](https://github.com/cornerstonejs/cornerstone3D-beta/issues/203)) ([749dcb5](https://github.com/cornerstonejs/cornerstone3D-beta/commit/749dcb59414c1aff2dffdca582fb3df0e4ca5ed7))
+
+
+
+
+
+## [0.4.23](https://github.com/cornerstonejs/cornerstone3D-beta/compare/@cornerstonejs/streaming-image-volume-loader@0.4.22...@cornerstonejs/streaming-image-volume-loader@0.4.23) (2022-09-02)
+
+
+### Bug Fixes
+
+* annotations throwing error when stack and volume viewports are converted ([#195](https://github.com/cornerstonejs/cornerstone3D-beta/issues/195)) ([ed23f05](https://github.com/cornerstonejs/cornerstone3D-beta/commit/ed23f05b23063769942328f9e6797d792767ec49))
+
+
+
+
+
 ## [0.4.22](https://github.com/cornerstonejs/cornerstone3D-beta/compare/@cornerstonejs/streaming-image-volume-loader@0.4.21...@cornerstonejs/streaming-image-volume-loader@0.4.22) (2022-08-26)
 
 **Note:** Version bump only for package @cornerstonejs/streaming-image-volume-loader

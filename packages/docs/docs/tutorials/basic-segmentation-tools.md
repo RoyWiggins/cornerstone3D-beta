@@ -151,7 +151,7 @@ const viewportInputArray = [
     type: ViewportType.ORTHOGRAPHIC,
     element: element1,
     defaultOptions: {
-      orientation: ORIENTATION.AXIAL,
+      orientation: Enums.OrientationAxis.AXIAL,
     },
   },
   {
@@ -159,7 +159,7 @@ const viewportInputArray = [
     type: ViewportType.ORTHOGRAPHIC,
     element: element2,
     defaultOptions: {
-      orientation: ORIENTATION.SAGITTAL,
+      orientation: Enums.OrientationAxis.SAGITTAL,
     },
   },
   {
@@ -167,7 +167,7 @@ const viewportInputArray = [
     type: ViewportType.ORTHOGRAPHIC,
     element: element3,
     defaultOptions: {
-      orientation: ORIENTATION.CORONAL,
+      orientation: Enums.OrientationAxis.CORONAL,
     },
   },
 ];
@@ -223,6 +223,15 @@ renderingEngine.renderViewports([viewportId1, viewportId2, viewportId3]);
 ## Final code
 
 ```js
+// Get Cornerstone imageIds and fetch metadata into RAM
+const imageIds = await createImageIdsAndCacheMetaData({
+  StudyInstanceUID:
+    '1.3.6.1.4.1.14519.5.2.1.7009.2403.334240657131972136850343327463',
+  SeriesInstanceUID:
+    '1.3.6.1.4.1.14519.5.2.1.7009.2403.226151125820845824875394858561',
+  wadoRsRoot: 'https://d3t6nz73ql33tx.cloudfront.net/dicomweb',
+});
+
 const content = document.getElementById('content');
 
 const viewportGrid = document.createElement('div');
@@ -311,7 +320,7 @@ const viewportInputArray = [
     type: ViewportType.ORTHOGRAPHIC,
     element: element1,
     defaultOptions: {
-      orientation: ORIENTATION.AXIAL,
+      orientation: Enums.OrientationAxis.AXIAL,
     },
   },
   {
@@ -319,7 +328,7 @@ const viewportInputArray = [
     type: ViewportType.ORTHOGRAPHIC,
     element: element2,
     defaultOptions: {
-      orientation: ORIENTATION.SAGITTAL,
+      orientation: Enums.OrientationAxis.SAGITTAL,
     },
   },
   {
@@ -327,7 +336,7 @@ const viewportInputArray = [
     type: ViewportType.ORTHOGRAPHIC,
     element: element3,
     defaultOptions: {
-      orientation: ORIENTATION.CORONAL,
+      orientation: Enums.OrientationAxis.CORONAL,
     },
   },
 ];
@@ -347,13 +356,6 @@ await setVolumesForViewports(
   [
     {
       volumeId,
-      callback: ({ volumeActor }) => {
-        // set the windowLevel after the volumeActor is created
-        volumeActor
-          .getProperty()
-          .getRGBTransferFunction(0)
-          .setMappingRange(-180, 220);
-      },
     },
   ],
   [viewportId1, viewportId2, viewportId3]

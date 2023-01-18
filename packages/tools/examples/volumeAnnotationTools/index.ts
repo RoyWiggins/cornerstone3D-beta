@@ -4,7 +4,6 @@ import {
   Enums,
   setVolumesForViewports,
   volumeLoader,
-  CONSTANTS,
 } from '@cornerstonejs/core';
 import {
   initDemo,
@@ -22,11 +21,11 @@ const {
   LengthTool,
   ToolGroupManager,
   StackScrollMouseWheelTool,
+  ZoomTool,
   Enums: csToolsEnums,
 } = cornerstoneTools;
 
 const { ViewportType } = Enums;
-const { ORIENTATION } = CONSTANTS;
 const { MouseBindings } = csToolsEnums;
 
 // Define a unique id for the volume
@@ -51,6 +50,10 @@ viewportGrid.style.flexDirection = 'row';
 const element1 = document.createElement('div');
 const element2 = document.createElement('div');
 const element3 = document.createElement('div');
+element1.oncontextmenu = () => false;
+element2.oncontextmenu = () => false;
+element3.oncontextmenu = () => false;
+
 element1.style.width = size;
 element1.style.height = size;
 element2.style.width = size;
@@ -82,6 +85,7 @@ async function run() {
 
   // Add tools to Cornerstone3D
   cornerstoneTools.addTool(LengthTool);
+  cornerstoneTools.addTool(ZoomTool);
   cornerstoneTools.addTool(StackScrollMouseWheelTool);
 
   // Define a tool group, which defines how mouse events map to tool commands for
@@ -89,7 +93,8 @@ async function run() {
   const toolGroup = ToolGroupManager.createToolGroup(toolGroupId);
 
   // Add the tools to the tool group and specify which volume they are pointing at
-  toolGroup.addTool(LengthTool.toolName, { configuration: { volumeId } });
+  toolGroup.addTool(LengthTool.toolName, { volumeId });
+  toolGroup.addTool(ZoomTool.toolName, { volumeId });
   toolGroup.addTool(StackScrollMouseWheelTool.toolName);
 
   // Set the initial state of the tools, here we set one tool active on left click.
@@ -98,6 +103,14 @@ async function run() {
     bindings: [
       {
         mouseButton: MouseBindings.Primary, // Left Click
+      },
+    ],
+  });
+
+  toolGroup.setToolActive(ZoomTool.toolName, {
+    bindings: [
+      {
+        mouseButton: MouseBindings.Secondary, // Right Click
       },
     ],
   });
@@ -113,7 +126,6 @@ async function run() {
     SeriesInstanceUID:
       '1.3.6.1.4.1.14519.5.2.1.7009.2403.226151125820845824875394858561',
     wadoRsRoot: 'https://d3t6nz73ql33tx.cloudfront.net/dicomweb',
-    type: 'VOLUME',
   });
 
   // Instantiate a rendering engine
@@ -133,7 +145,7 @@ async function run() {
       type: ViewportType.ORTHOGRAPHIC,
       element: element1,
       defaultOptions: {
-        orientation: ORIENTATION.AXIAL,
+        orientation: Enums.OrientationAxis.AXIAL,
         background: <Types.Point3>[0.2, 0, 0.2],
       },
     },
@@ -142,7 +154,7 @@ async function run() {
       type: ViewportType.ORTHOGRAPHIC,
       element: element2,
       defaultOptions: {
-        orientation: ORIENTATION.SAGITTAL,
+        orientation: Enums.OrientationAxis.SAGITTAL,
         background: <Types.Point3>[0.2, 0, 0.2],
       },
     },
@@ -156,7 +168,7 @@ async function run() {
           viewUp: <Types.Point3>[
             -0.5962687530844388, 0.5453181550345819, -0.5891448751239446,
           ],
-          sliceNormal: <Types.Point3>[
+          viewPlaneNormal: <Types.Point3>[
             -0.5962687530844388, 0.5453181550345819, -0.5891448751239446,
           ],
         },

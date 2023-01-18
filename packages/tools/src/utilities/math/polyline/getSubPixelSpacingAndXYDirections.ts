@@ -39,15 +39,13 @@ const getSubPixelSpacingAndXYDirections = (
     const { viewPlaneNormal, viewUp } = viewport.getCamera();
 
     // Calculate size of spacing vector in normal direction
-    const iVector = direction.slice(0, 3);
-    const jVector = direction.slice(3, 6);
-    const kVector = direction.slice(6, 9);
+    const iVector = direction.slice(0, 3) as Types.Point3;
+    const jVector = direction.slice(3, 6) as Types.Point3;
+    const kVector = direction.slice(6, 9) as Types.Point3;
 
-    let viewRight = vec3.create(); // Get the X direction of the viewport
+    const viewRight = vec3.create(); // Get the X direction of the viewport
 
     vec3.cross(viewRight, <vec3>viewUp, <vec3>viewPlaneNormal);
-
-    viewRight = [-viewRight[0], -viewRight[1], -viewRight[2]];
 
     const absViewRightDotI = Math.abs(vec3.dot(viewRight, iVector));
     const absViewRightDotJ = Math.abs(vec3.dot(viewRight, jVector));

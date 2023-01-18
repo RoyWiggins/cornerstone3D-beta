@@ -9,6 +9,7 @@ import {
 } from './RenderingEngine';
 import RenderingEngine from './RenderingEngine';
 import VolumeViewport from './RenderingEngine/VolumeViewport';
+import BaseVolumeViewport from './RenderingEngine/BaseVolumeViewport';
 import StackViewport from './RenderingEngine/StackViewport';
 import Viewport from './RenderingEngine/Viewport';
 import eventTarget from './eventTarget';
@@ -19,7 +20,6 @@ import {
 import cache, { ImageVolume } from './cache';
 import imageRetrievalPoolManager from './requestPool/imageRetrievalPoolManager';
 import imageLoadPoolManager from './requestPool/imageLoadPoolManager';
-import { setMaxSimultaneousRequests } from './requestPool/getMaxSimultaneousRequests';
 
 import getEnabledElement, {
   getEnabledElementByIds,
@@ -63,6 +63,7 @@ export {
   //
   Settings,
   // Rendering Engine
+  BaseVolumeViewport,
   VolumeViewport,
   Viewport,
   StackViewport,
@@ -97,7 +98,6 @@ export {
   imageLoadPoolManager as requestPoolManager,
   imageRetrievalPoolManager,
   imageLoadPoolManager,
-  setMaxSimultaneousRequests,
   // CPU Rendering
   getShouldUseCPURendering,
   setUseCPURendering,

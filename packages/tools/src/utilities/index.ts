@@ -11,6 +11,7 @@ import isObject from './isObject';
 import clip from './clip';
 import calibrateImageSpacing from './calibrateImageSpacing';
 import triggerAnnotationRenderForViewportIds from './triggerAnnotationRenderForViewportIds';
+import triggerAnnotationRender from './triggerAnnotationRender';
 import jumpToSlice from './viewport/jumpToSlice';
 
 import pointInShapeCallback from './pointInShapeCallback';
@@ -29,6 +30,7 @@ import * as boundingBox from './boundingBox';
 import * as planarFreehandROITool from './planarFreehandROITool';
 import * as rectangleROITool from './rectangleROITool';
 import * as stackPrefetch from './stackPrefetch';
+import * as viewport from './viewport';
 
 // Events
 import { triggerEvent } from '@cornerstonejs/core';
@@ -47,11 +49,13 @@ export {
   calibrateImageSpacing,
   segmentation,
   triggerAnnotationRenderForViewportIds,
+  triggerAnnotationRender,
   pointInShapeCallback,
   pointInSurroundingSphereCallback,
   getAnnotationNearPoint,
   getAnnotationNearPointOnEnabledElement,
   jumpToSlice,
+  viewport,
   cine,
   clip,
   boundingBox,

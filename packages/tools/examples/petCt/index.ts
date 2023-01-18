@@ -4,7 +4,6 @@ import {
   Enums,
   setVolumesForViewports,
   volumeLoader,
-  CONSTANTS,
   getRenderingEngine,
 } from '@cornerstonejs/core';
 import {
@@ -33,7 +32,6 @@ const {
 
 const { MouseBindings } = csToolsEnums;
 const { ViewportType, BlendModes } = Enums;
-const { ORIENTATION } = CONSTANTS;
 
 const { createCameraPositionSynchronizer, createVOISynchronizer } =
   synchronizers;
@@ -517,7 +515,6 @@ async function setUpDisplay() {
     SeriesInstanceUID:
       '1.3.6.1.4.1.14519.5.2.1.7009.2403.226151125820845824875394858561',
     wadoRsRoot,
-    type: 'VOLUME',
   });
 
   const ptImageIds = await createImageIdsAndCacheMetaData({
@@ -525,7 +522,6 @@ async function setUpDisplay() {
     SeriesInstanceUID:
       '1.3.6.1.4.1.14519.5.2.1.7009.2403.879445243400782656317561081015',
     wadoRsRoot,
-    type: 'VOLUME',
   });
 
   // Define a volume in memory
@@ -545,7 +541,7 @@ async function setUpDisplay() {
       type: ViewportType.ORTHOGRAPHIC,
       element: element1_1,
       defaultOptions: {
-        orientation: ORIENTATION.AXIAL,
+        orientation: Enums.OrientationAxis.AXIAL,
       },
     },
     {
@@ -553,7 +549,7 @@ async function setUpDisplay() {
       type: ViewportType.ORTHOGRAPHIC,
       element: element1_2,
       defaultOptions: {
-        orientation: ORIENTATION.SAGITTAL,
+        orientation: Enums.OrientationAxis.SAGITTAL,
       },
     },
     {
@@ -561,7 +557,7 @@ async function setUpDisplay() {
       type: ViewportType.ORTHOGRAPHIC,
       element: element1_3,
       defaultOptions: {
-        orientation: ORIENTATION.CORONAL,
+        orientation: Enums.OrientationAxis.CORONAL,
       },
     },
     {
@@ -569,7 +565,7 @@ async function setUpDisplay() {
       type: ViewportType.ORTHOGRAPHIC,
       element: element2_1,
       defaultOptions: {
-        orientation: ORIENTATION.AXIAL,
+        orientation: Enums.OrientationAxis.AXIAL,
         background: <Types.Point3>[1, 1, 1],
       },
     },
@@ -578,7 +574,7 @@ async function setUpDisplay() {
       type: ViewportType.ORTHOGRAPHIC,
       element: element2_2,
       defaultOptions: {
-        orientation: ORIENTATION.SAGITTAL,
+        orientation: Enums.OrientationAxis.SAGITTAL,
         background: <Types.Point3>[1, 1, 1],
       },
     },
@@ -587,7 +583,7 @@ async function setUpDisplay() {
       type: ViewportType.ORTHOGRAPHIC,
       element: element2_3,
       defaultOptions: {
-        orientation: ORIENTATION.CORONAL,
+        orientation: Enums.OrientationAxis.CORONAL,
         background: <Types.Point3>[1, 1, 1],
       },
     },
@@ -596,7 +592,7 @@ async function setUpDisplay() {
       type: ViewportType.ORTHOGRAPHIC,
       element: element3_1,
       defaultOptions: {
-        orientation: ORIENTATION.AXIAL,
+        orientation: Enums.OrientationAxis.AXIAL,
       },
     },
     {
@@ -604,7 +600,7 @@ async function setUpDisplay() {
       type: ViewportType.ORTHOGRAPHIC,
       element: element3_2,
       defaultOptions: {
-        orientation: ORIENTATION.SAGITTAL,
+        orientation: Enums.OrientationAxis.SAGITTAL,
       },
     },
     {
@@ -612,7 +608,7 @@ async function setUpDisplay() {
       type: ViewportType.ORTHOGRAPHIC,
       element: element3_3,
       defaultOptions: {
-        orientation: ORIENTATION.CORONAL,
+        orientation: Enums.OrientationAxis.CORONAL,
       },
     },
     {
@@ -620,7 +616,7 @@ async function setUpDisplay() {
       type: ViewportType.ORTHOGRAPHIC,
       element: element_mip,
       defaultOptions: {
-        orientation: ORIENTATION.CORONAL,
+        orientation: Enums.OrientationAxis.CORONAL,
         background: <Types.Point3>[1, 1, 1],
       },
     },

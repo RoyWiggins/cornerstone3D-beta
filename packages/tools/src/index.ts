@@ -2,6 +2,7 @@ import { init, destroy } from './init';
 import {
   addTool,
   removeTool,
+  state,
   ToolGroupManager,
   SynchronizerManager,
   Synchronizer,
@@ -40,6 +41,7 @@ import {
   PlanarFreehandROITool,
   ArrowAnnotateTool,
   CrosshairsTool,
+  ReferenceLinesTool,
   RectangleScissorsTool,
   CircleScissorsTool,
   SphereScissorsTool,
@@ -49,6 +51,9 @@ import {
   BrushTool,
   AngleTool,
   MagnifyTool,
+  ReferenceCursors,
+  ReferenceLines,
+  PaintFillTool,
 } from './tools';
 
 import * as Enums from './enums';
@@ -76,6 +81,7 @@ export {
   // Annotation Tools
   LengthTool,
   CrosshairsTool,
+  ReferenceLinesTool,
   ProbeTool,
   RectangleROITool,
   EllipticalROITool,
@@ -85,6 +91,8 @@ export {
   ArrowAnnotateTool,
   AngleTool,
   MagnifyTool,
+  ReferenceCursors,
+  ReferenceLines,
   // Segmentation Display
   SegmentationDisplayTool,
   // Segmentation Editing Tools
@@ -98,7 +106,9 @@ export {
   synchronizers,
   Synchronizer,
   SynchronizerManager,
+  PaintFillTool,
   Types,
+  state,
   // ToolGroups
   ToolGroupManager,
   // Enums

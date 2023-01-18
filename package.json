@@ -5,20 +5,23 @@
   "workspaces": [
     "packages/*"
   ],
+  "repository": "https://github.com/cornerstonejs/cornerstone3D-beta",
   "sideEffects": false,
   "engines": {
     "node": ">=12",
     "yarn": ">=1.19.1"
   },
   "scripts": {
-    "api-check": "lerna run api-check --stream",
+    "api-check": "lerna run api-check ",
     "build": "lerna run build --stream",
-    "build:update-api": "lerna run build:update-api --stream",
+    "build:umd": "lerna run build:umd --stream",
+    "build:update-api": "lerna run build:update-api",
     "example": "node ./utils/ExampleRunner/example-runner-cli.js",
     "build:bundle": "cd packages/tools && node ../../utils/bundle/build-bundle.js",
     "all-examples": "node ./utils/ExampleRunner/build-all-examples-cli.js --fromRoot",
     "build-all-examples": "node ./utils/ExampleRunner/build-all-examples-cli.js --build --fromRoot",
     "serve-static-examples": "npx serve .static-examples",
+    "build:all": "lerna run build:all",
     "dev": "yarn run all-examples",
     "docs": "lerna run docs",
     "docs:watch": "lerna run docs:watch",
@@ -30,7 +33,8 @@
     "test": "karma start",
     "test:debug": "karma start ./karma.conf.js --browsers Chrome --no-single-run",
     "lint-staged": "lint-staged",
-    "lint": "eslint --quiet -c .eslintrc.json packages/**/src"
+    "lint": "eslint --quiet -c .eslintrc.json packages/**/src",
+    "webpack:watch": "lerna run webpack:watch"
   },
   "devDependencies": {
     "@babel/core": "^7.16.12",

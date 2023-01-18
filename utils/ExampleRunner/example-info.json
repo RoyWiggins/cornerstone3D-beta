@@ -42,6 +42,10 @@
         "name": "Volume Viewport API",
         "description": "Demonstrates how to interact with a Volume viewport  (e.g. Set VOI Range, Change Camera Position / Orientation, Change Slab Thickness, Flip H/V, Rotate, Invert, Zoom/Pan, Reset)"
       },
+      "volumeViewport3D": {
+        "name": "3D Volume Rendering",
+        "description": "Demonstrates how to 3D render a volume and apply a preset"
+      },
       "volumeEvents": {
         "name": "Volume Viewport Events",
         "description": "Demonstrates the Events that are fired during interaction with a Volume Viewport"
@@ -87,8 +91,12 @@
         "description": "Demonstrates the various tool modes for annotation tools (active, passive, enabled, disabled)"
       },
       "local": {
-        "name": "DICOM P10 from the local file system" ,
+        "name": "DICOM P10 from the local file system",
         "description": "Provides an interface to load a DICOM P10 image from your local file system to the Cornerstone3D"
+      },
+      "localCPU": {
+        "name": "DICOM P10 from the local file system using CPU",
+        "description": "Cornerstone3D uses WebGL for rendering by default (if available) and a fallback to CPU. This example force rendering on CPU for debugging purposes."
       },
       "stackAnnotationTools": {
         "name": "Stack Annotation Tools",
@@ -101,6 +109,10 @@
       "annotationSelectionAndLocking": {
         "name": "Annotation Selection and Locking",
         "description": "Demonstrates how to toggle the Locked and Selected states for Annotations"
+      },
+      "resetCamera": {
+        "name": "Viewports Reset Camera",
+        "description": "Demonstrates various options that are available for resetting camera on viewports"
       },
       "annotationVisibility": {
         "name": "Annotation changing visibility",
@@ -138,6 +150,10 @@
         "name": "ToolGroup Specific Segmentation Configuration",
         "description": "Demonstrate how to change the configuration of how a specific tool group displays segmentations through via segmentation representations"
       },
+      "segmentSpecificConfiguration": {
+        "name": "Segment-specific Segmentation Configuration",
+        "description": "Demonstrates how to change the configuration of a specific segment"
+      },
       "basicSegmentationTools": {
         "name": "Segmentation Tools - Brush, Scissors",
         "description": "Demonstrates how to use manual segmentation tools to modify the segmentation data"
@@ -149,6 +165,14 @@
       "polyDataActorManipulationTools": {
         "name": "Manipulation Tools with Poly Data in a Volume Viewport API",
         "description": "Demonstrates how to interact with a Volume viewport (Pan, Zoom, Rotate) by mouse events"
+      },
+      "volumeViewportOrientation": {
+        "name": "Volume Viewport Orientation",
+        "description": "Demonstrates you can switch between different orientation of a volume viewport"
+      },
+      "referenceCursors": {
+        "name": "Referencing Cursors",
+        "description": "Demonstrates how to synchronize the cursor between multiple viewports"
       }
     },
     "tools-advanced": {
@@ -160,6 +184,10 @@
         "name": "Crosshairs",
         "description": "Here we demonstrate crosshairs linking three orthogonal views of the same data"
       },
+      "referenceLines": {
+        "name": "Reference Lines",
+        "description": "Demonstrate reference line tool for rendering viewports location with respect to each other"
+      },
       "petCT": {
         "name": "PET-CT Fusion + MIPLayout",
         "description": "PT-CT fusion layout with Crosshairs, and synchronized cameras, CT W/L and PET threshold"
@@ -167,6 +195,10 @@
       "sharedToolState": {
         "name": "Shared Tool State",
         "description": "Demonstrates that annotations are stored on frame of reference, and can therefore be shared between Stack and Volume Viewports."
+      },
+      "stackToVolumeWithAnnotations": {
+        "name": "StackViewport <--> VolumeViewport ",
+        "description": "Demonstrates how annotations are preserved and rendered correctly even when a stack viewport is converted to a volume viewport and vice versa. This is an advanced usage for MPR"
       },
       "volumeViewportSynchronization": {
         "name": "Volume Viewport Synchronization",
@@ -179,6 +211,10 @@
       "rectangleROIThreshold": {
         "name": "Rectangle ROI Threshold Segmentation",
         "description": "Demonstrates how to use the rectangle roi tool to perform threshold segmentation"
+      },
+      "cancelAnnotationDrawing": {
+        "name": "Cancel Annotation Drawing",
+        "description": "Demonstrates how to use the keyboard (ESC) key to cancel annotation drawing."
       }
     }
   }

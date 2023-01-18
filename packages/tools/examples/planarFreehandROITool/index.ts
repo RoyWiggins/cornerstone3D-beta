@@ -3,7 +3,6 @@ import {
   Types,
   Enums,
   volumeLoader,
-  CONSTANTS,
   getRenderingEngine,
 } from '@cornerstonejs/core';
 import {
@@ -30,7 +29,6 @@ const {
 } = cornerstoneTools;
 
 const { ViewportType } = Enums;
-const { ORIENTATION } = CONSTANTS;
 const { MouseBindings } = csToolsEnums;
 const { selection } = annotation;
 const defaultFrameOfReferenceSpecificAnnotationManager =
@@ -197,7 +195,6 @@ async function run() {
     SeriesInstanceUID:
       '1.3.6.1.4.1.14519.5.2.1.7009.2403.226151125820845824875394858561',
     wadoRsRoot: 'https://d3t6nz73ql33tx.cloudfront.net/dicomweb',
-    type: 'STACK',
   });
 
   // Define a stack containing a single image
@@ -209,7 +206,6 @@ async function run() {
     SeriesInstanceUID:
       '1.3.6.1.4.1.14519.5.2.1.7009.2403.226151125820845824875394858561',
     wadoRsRoot: 'https://d3t6nz73ql33tx.cloudfront.net/dicomweb',
-    type: 'VOLUME',
   });
 
   // Instantiate a rendering engine
@@ -230,7 +226,7 @@ async function run() {
       type: ViewportType.ORTHOGRAPHIC,
       element: element2,
       defaultOptions: {
-        orientation: ORIENTATION.SAGITTAL,
+        orientation: Enums.OrientationAxis.SAGITTAL,
         background: <Types.Point3>[0.2, 0, 0.2],
       },
     },

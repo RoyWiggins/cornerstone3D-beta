@@ -4,7 +4,6 @@ import {
   Enums,
   setVolumesForViewports,
   volumeLoader,
-  CONSTANTS,
 } from '@cornerstonejs/core';
 import {
   initDemo,
@@ -33,7 +32,6 @@ const {
 
 const { MouseBindings } = csToolsEnums;
 const { ViewportType } = Enums;
-const { ORIENTATION } = CONSTANTS;
 
 // Define a unique id for the volume
 const volumeName = 'CT_VOLUME_ID'; // Id of the volume less loader prefix
@@ -197,7 +195,6 @@ async function run() {
     SeriesInstanceUID:
       '1.3.6.1.4.1.14519.5.2.1.7009.2403.226151125820845824875394858561',
     wadoRsRoot: 'https://d3t6nz73ql33tx.cloudfront.net/dicomweb',
-    type: 'VOLUME',
   });
 
   // Define a volume in memory
@@ -223,7 +220,7 @@ async function run() {
       type: ViewportType.ORTHOGRAPHIC,
       element: element1,
       defaultOptions: {
-        orientation: ORIENTATION.AXIAL,
+        orientation: Enums.OrientationAxis.AXIAL,
         background: <Types.Point3>[0, 0, 0],
       },
     },
@@ -232,7 +229,7 @@ async function run() {
       type: ViewportType.ORTHOGRAPHIC,
       element: element2,
       defaultOptions: {
-        orientation: ORIENTATION.SAGITTAL,
+        orientation: Enums.OrientationAxis.SAGITTAL,
         background: <Types.Point3>[0, 0, 0],
       },
     },
@@ -241,7 +238,7 @@ async function run() {
       type: ViewportType.ORTHOGRAPHIC,
       element: element3,
       defaultOptions: {
-        orientation: ORIENTATION.CORONAL,
+        orientation: Enums.OrientationAxis.CORONAL,
         background: <Types.Point3>[0, 0, 0],
       },
     },

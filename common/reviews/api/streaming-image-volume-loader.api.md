@@ -17,6 +17,7 @@ type Actor = vtkActor;
 type ActorEntry = {
     uid: string;
     actor: Actor | VolumeActor | ImageActor;
+    referenceId?: string;
     slabThickness?: number;
 };
 
@@ -116,7 +117,7 @@ interface CPUFallbackEnabledElement {
     invalid?: boolean;
     // (undocumented)
     metadata?: {
-        direction?: Float32Array;
+        direction?: Mat3;
         dimensions?: Point3;
         spacing?: Point3;
         origin?: Point3;
@@ -296,7 +297,7 @@ type CPUFallbackViewportDisplayedArea = {
 // @public (undocumented)
 type CPUIImageData = {
     dimensions: Point3;
-    direction: Float32Array;
+    direction: Mat3;
     spacing: Point3;
     origin: Point3;
     imageData: CPUImageData;
@@ -322,7 +323,7 @@ type CPUImageData = {
     getWorldToIndex?: () => Point3;
     getIndexToWorld?: () => Point3;
     getSpacing?: () => Point3;
-    getDirection?: () => Float32Array;
+    getDirection?: () => Mat3;
     getScalarData?: () => number[];
     getDimensions?: () => Point3;
 };
@@ -364,6 +365,7 @@ enum Events {
     CACHE_SIZE_EXCEEDED = 'CACHE_SIZE_EXCEEDED',
     CAMERA_MODIFIED = 'CORNERSTONE_CAMERA_MODIFIED',
 
+    CAMERA_RESET = 'CORNERSTONE_CAMERA_RESET',
     ELEMENT_DISABLED = 'CORNERSTONE_ELEMENT_DISABLED',
     ELEMENT_ENABLED = 'CORNERSTONE_ELEMENT_ENABLED',
     IMAGE_CACHE_IMAGE_ADDED = 'CORNERSTONE_IMAGE_CACHE_IMAGE_ADDED',
@@ -373,22 +375,24 @@ enum Events {
     IMAGE_LOAD_PROGRESS = 'CORNERSTONE_IMAGE_LOAD_PROGRESS',
     IMAGE_LOADED = 'CORNERSTONE_IMAGE_LOADED',
     IMAGE_RENDERED = 'CORNERSTONE_IMAGE_RENDERED',
+
     IMAGE_SPACING_CALIBRATED = 'CORNERSTONE_IMAGE_SPACING_CALIBRATED',
     IMAGE_VOLUME_MODIFIED = 'CORNERSTONE_IMAGE_VOLUME_MODIFIED',
     PRE_STACK_NEW_IMAGE = 'CORNERSTONE_PRE_STACK_NEW_IMAGE',
     STACK_NEW_IMAGE = 'CORNERSTONE_STACK_NEW_IMAGE',
     STACK_VIEWPORT_NEW_STACK = 'CORNERSTONE_STACK_VIEWPORT_NEW_STACK',
     STACK_VIEWPORT_SCROLL = 'CORNERSTONE_STACK_VIEWPORT_SCROLL',
-
     VOI_MODIFIED = 'CORNERSTONE_VOI_MODIFIED',
 
     VOLUME_CACHE_VOLUME_ADDED = 'CORNERSTONE_VOLUME_CACHE_VOLUME_ADDED',
+
     VOLUME_CACHE_VOLUME_REMOVED = 'CORNERSTONE_VOLUME_CACHE_VOLUME_REMOVED',
     VOLUME_LOADED = 'CORNERSTONE_VOLUME_LOADED',
-
     VOLUME_LOADED_FAILED = 'CORNERSTONE_VOLUME_LOADED_FAILED',
 
     VOLUME_NEW_IMAGE = 'CORNERSTONE_VOLUME_NEW_IMAGE',
+
+    VOLUME_VIEWPORT_NEW_VOLUME = 'CORNERSTONE_VOLUME_VIEWPORT_NEW_VOLUME',
 
     // IMAGE_CACHE_FULL = 'CORNERSTONE_IMAGE_CACHE_FULL',
     // PRE_RENDER = 'CORNERSTONE_PRE_RENDER',
@@ -502,6 +506,7 @@ interface ICachedVolume {
 
 // @public
 interface ICamera {
+    clippingRange?: Point2;
     flipHorizontal?: boolean;
     flipVertical?: boolean;
     focalPoint?: Point3;
@@ -598,7 +603,7 @@ interface IImage {
 // @public
 interface IImageData {
     dimensions: Point3;
-    direction: Float32Array;
+    direction: Mat3;
     hasPixelSpacing?: boolean;
     imageData: vtkImageData;
     metadata: { Modality: string };
@@ -626,12 +631,14 @@ interface IImageLoadObject {
 
 // @public
 interface IImageVolume {
+    // (undocumented)
+    cancelLoading?: () => void;
     convertToCornerstoneImage?: (
     imageId: string,
     imageIdIndex: number
     ) => IImageLoadObject;
     dimensions: Point3;
-    direction: Float32Array;
+    direction: Mat3;
     hasPixelSpacing: boolean;
     imageData?: vtkImageData;
     imageIds?: Array<string>;
@@ -898,6 +905,7 @@ interface IViewport {
     getRenderingEngine(): any;
     getZoom(): number;
     id: string;
+    isDisabled: boolean;
     options: ViewportInputOptions;
     removeAllActors(): void;
     render(): void;
@@ -928,7 +936,7 @@ interface IViewportId {
 // @public
 interface IVolume {
     dimensions: Point3;
-    direction: Float32Array;
+    direction: Mat3;
     imageData?: vtkImageData;
     metadata: Metadata;
     origin: Point3;
@@ -991,18 +999,26 @@ interface IVolumeViewport extends IViewport {
     getCurrentImageIdIndex: () => number;
     // (undocumented)
     getFrameOfReferenceUID: () => string;
-    getImageData(): IImageData | undefined;
+    getImageData(volumeId?: string): IImageData | undefined;
     getIntensityFromWorld(point: Point3): number;
     // (undocumented)
     getProperties: () => any;
     getSlabThickness(): number;
+    hasImageURI: (imageURI: string) => boolean;
+    hasVolumeId: (volumeId: string) => boolean;
     removeVolumeActors(actorUIDs: Array<string>, immediate?: boolean): void;
-    resetCamera(resetPan?: boolean, resetZoom?: boolean): boolean;
+    resetCamera(
+    resetPan?: boolean,
+    resetZoom?: boolean,
+    resetToCenter?: boolean
+    ): boolean;
     setBlendMode(
     blendMode: BlendModes,
     filterActorUIDs?: Array<string>,
     immediate?: boolean
     ): void;
+    // (undocumented)
+    setOrientation(orientation: OrientationAxis): void;
     setProperties(
         { voiRange }: VolumeViewportProperties,
     volumeId?: string,
@@ -1023,6 +1039,19 @@ interface IVolumeViewport extends IViewport {
 }
 
 // @public
+type Mat3 = [
+number,
+number,
+number,
+number,
+number,
+number,
+number,
+number,
+number
+];
+
+// @public
 type Metadata = {
     BitsAllocated: number;
     BitsStored: number;
@@ -1041,8 +1070,20 @@ type Metadata = {
 };
 
 // @public (undocumented)
-type Orientation = {
-    sliceNormal: Point3;
+enum OrientationAxis {
+    // (undocumented)
+    ACQUISITION = 'acquisition',
+    // (undocumented)
+    AXIAL = 'axial',
+    // (undocumented)
+    CORONAL = 'coronal',
+    // (undocumented)
+    SAGITTAL = 'sagittal',
+}
+
+// @public
+type OrientationVectors = {
+    viewPlaneNormal: Point3;
     viewUp: Point3;
 };
 
@@ -1105,12 +1146,6 @@ type ScalingParameters = {
     suvbsa?: number;
 };
 
-// @public (undocumented)
-export function sharedArrayBufferImageLoader(imageId: string, options?: Record<string, any>): {
-    promise: Promise<Record<string, any>>;
-    cancelFn: () => void;
-};
-
 // @public
 type StackNewImageEvent = CustomEvent_2<StackNewImageEventDetail>;
 
@@ -1158,7 +1193,7 @@ type StackViewportScrollEventDetail = {
 export class StreamingImageVolume extends ImageVolume {
     constructor(imageVolumeProperties: Types.IVolume, streamingProperties: Types.IStreamingVolumeProperties);
     // (undocumented)
-    cancelLoading(): void;
+    cancelLoading: () => void;
     // (undocumented)
     clearLoadCallbacks(): void;
     // (undocumented)
@@ -1177,6 +1212,7 @@ export class StreamingImageVolume extends ImageVolume {
                 length: number;
                 type: any;
             };
+            skipCreateImage: boolean;
             preScale: {
                 enabled: boolean;
                 scalingParameters: Types.ScalingParameters;
@@ -1205,15 +1241,41 @@ type TransformMatrix2D = [number, number, number, number, number, number];
 // @public
 type ViewportInputOptions = {
     background?: [number, number, number];
-    orientation?: Orientation;
+    orientation?: OrientationAxis | OrientationVectors;
     suppressEvents?: boolean;
 };
+
+// @public (undocumented)
+interface ViewportPreset {
+    // (undocumented)
+    ambient: string;
+    // (undocumented)
+    colorTransfer: string;
+    // (undocumented)
+    diffuse: string;
+    // (undocumented)
+    gradientOpacity: string;
+    // (undocumented)
+    interpolation: string;
+    // (undocumented)
+    name: string;
+    // (undocumented)
+    scalarOpacity: string;
+    // (undocumented)
+    shade: string;
+    // (undocumented)
+    specular: string;
+    // (undocumented)
+    specularPower: string;
+}
 
 // @public
 enum ViewportType {
     ORTHOGRAPHIC = 'orthographic',
     PERSPECTIVE = 'perspective',
     STACK = 'stack',
+    // (undocumented)
+    VOLUME_3D = 'volume3d',
 }
 
 // @public (undocumented)

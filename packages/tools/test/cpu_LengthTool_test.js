@@ -13,11 +13,9 @@ const {
   volumeLoader,
   setUseCPURendering,
   resetUseCPURendering,
-  CONSTANTS,
 } = cornerstone3D;
 
 const { Events, ViewportType } = Enums;
-const { ORIENTATION } = CONSTANTS;
 
 const {
   LengthTool,
@@ -63,7 +61,7 @@ function createViewport(renderingEngine, viewportType, width, height) {
       element,
       defaultOptions: {
         background: [1, 0, 1], // pinkish background
-        orientation: ORIENTATION[AXIAL],
+        orientation: Enums.OrientationAxis.AXIAL,
       },
     },
   ]);
@@ -252,7 +250,7 @@ describe('Length Tool (CPU):', () => {
         expect(lengthAnnotation.metadata.referencedImageId).toBe(imageId1);
         expect(lengthAnnotation.metadata.toolName).toBe(LengthTool.toolName);
         expect(lengthAnnotation.invalidated).toBe(false);
-        expect(lengthAnnotation.highlighted).toBe(false);
+        expect(lengthAnnotation.highlighted).toBe(true);
 
         const data = lengthAnnotation.data.cachedStats;
         const targets = Array.from(Object.keys(data));
@@ -393,7 +391,7 @@ describe('Length Tool (CPU):', () => {
         expect(lengthAnnotation.metadata.referencedImageId).toBe(imageId1);
         expect(lengthAnnotation.metadata.toolName).toBe(LengthTool.toolName);
         expect(lengthAnnotation.invalidated).toBe(false);
-        expect(lengthAnnotation.highlighted).toBe(false);
+        expect(lengthAnnotation.highlighted).toBe(true);
 
         const data = lengthAnnotation.data.cachedStats;
         const targets = Array.from(Object.keys(data));

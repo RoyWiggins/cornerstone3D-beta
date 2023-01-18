@@ -4,7 +4,7 @@
 
 ```ts
 
-import type { mat4 } from 'gl-matrix';
+import { mat4 } from 'gl-matrix';
 import { vec3 } from 'gl-matrix';
 import type vtkActor from '@kitware/vtk.js/Rendering/Core/Actor';
 import type { vtkCamera } from '@kitware/vtk.js/Rendering/Core/Camera';
@@ -21,6 +21,7 @@ type Actor = vtkActor;
 type ActorEntry = {
     uid: string;
     actor: Actor | VolumeActor | ImageActor;
+    referenceId?: string;
     slabThickness?: number;
 };
 
@@ -35,12 +36,62 @@ type ActorSliceRange = {
 };
 
 // @public (undocumented)
-function addProvider(provider: (type: string, imageId: string) => {
-    any: any;
-}, priority?: number): void;
+function addProvider(provider: (type: string, query: any) => any, priority?: number): void;
 
 // @public (undocumented)
 export function addVolumesToViewports(renderingEngine: IRenderingEngine, volumeInputs: Array<IVolumeInput>, viewportIds: Array<string>, immediateRender?: boolean, suppressEvents?: boolean): Promise<void>;
+
+// @public (undocumented)
+function applyPreset(actor: VolumeActor, preset: ViewportPreset): void;
+
+// @public (undocumented)
+export abstract class BaseVolumeViewport extends Viewport implements IVolumeViewport {
+    constructor(props: ViewportInput);
+    // (undocumented)
+    addVolumes(volumeInputArray: Array<IVolumeInput>, immediate?: boolean, suppressEvents?: boolean): Promise<void>;
+    // (undocumented)
+    canvasToWorld: (canvasPos: Point2) => Point3;
+    // (undocumented)
+    flip(flipDirection: FlipDirection): void;
+    // (undocumented)
+    getBounds(): number[];
+    // (undocumented)
+    getCurrentImageId: () => string;
+    // (undocumented)
+    getCurrentImageIdIndex: () => number;
+    // (undocumented)
+    getFrameOfReferenceUID: () => string;
+    // (undocumented)
+    getImageData(volumeId?: string): IImageData | undefined;
+    // (undocumented)
+    getIntensityFromWorld(point: Point3): number;
+    // (undocumented)
+    getSlabThickness(): number;
+    // (undocumented)
+    hasImageURI: (imageURI: string) => boolean;
+    // (undocumented)
+    hasVolumeId(volumeId: string): boolean;
+    // (undocumented)
+    removeVolumeActors(actorUIDs: Array<string>, immediate?: boolean): void;
+    // (undocumented)
+    resetCamera(resetPan?: boolean, resetZoom?: boolean, resetToCenter?: boolean): boolean;
+    // (undocumented)
+    setBlendMode(blendMode: BlendModes, filterActorUIDs?: string[], immediate?: boolean): void;
+    // (undocumented)
+    setOrientation(orientation: OrientationAxis, immediate?: boolean): void;
+    // (undocumented)
+    setProperties({ voiRange }?: VolumeViewportProperties, volumeId?: string, suppressEvents?: boolean): void;
+    // (undocumented)
+    setSlabThickness(slabThickness: number, filterActorUIDs?: string[]): void;
+    // (undocumented)
+    setVolumes(volumeInputArray: Array<IVolumeInput>, immediate?: boolean, suppressEvents?: boolean): Promise<void>;
+    // (undocumented)
+    useCPURendering: boolean;
+    // (undocumented)
+    static get useCustomRenderingPipeline(): boolean;
+    // (undocumented)
+    worldToCanvas: (worldPos: Point3) => Point2;
+}
 
 // @public (undocumented)
 enum BlendModes {
@@ -56,6 +107,9 @@ enum BlendModes {
 
 // @public (undocumented)
 export const cache: Cache_2;
+
+// @public (undocumented)
+function calculateViewportsSpatialRegistration(viewport1: IStackViewport, viewport2: IStackViewport): void;
 
 // @public (undocumented)
 type CameraModifiedEvent = CustomEvent_2<CameraModifiedEventDetail>;
@@ -84,9 +138,11 @@ const colormapsData: CPUFallbackColormapsData;
 
 declare namespace CONSTANTS {
     export {
-        ORIENTATION,
         colormapsData as CPU_COLORMAPS,
-        RENDERING_DEFAULTS
+        RENDERING_DEFAULTS,
+        mprCameraValues as MPR_CAMERA_VALUES,
+        EPSILON,
+        presets as VIEWPORT_PRESETS
     }
 }
 export { CONSTANTS }
@@ -152,7 +208,7 @@ interface CPUFallbackEnabledElement {
     invalid?: boolean;
     // (undocumented)
     metadata?: {
-        direction?: Float32Array;
+        direction?: Mat3;
         dimensions?: Point3;
         spacing?: Point3;
         origin?: Point3;
@@ -332,7 +388,7 @@ type CPUFallbackViewportDisplayedArea = {
 // @public (undocumented)
 type CPUIImageData = {
     dimensions: Point3;
-    direction: Float32Array;
+    direction: Mat3;
     spacing: Point3;
     origin: Point3;
     imageData: CPUImageData;
@@ -360,13 +416,13 @@ type CPUImageData = {
     getWorldToIndex?: () => Point3;
     getIndexToWorld?: () => Point3;
     getSpacing?: () => Point3;
-    getDirection?: () => Float32Array;
+    getDirection?: () => Mat3;
     getScalarData?: () => number[];
     getDimensions?: () => Point3;
 };
 
 // @public (undocumented)
-function createAndCacheDerivedVolume(referencedVolumeId: string, options: DerivedVolumeOptions): ImageVolume;
+function createAndCacheDerivedVolume(referencedVolumeId: string, options: DerivedVolumeOptions): Promise<ImageVolume>;
 
 // @public (undocumented)
 function createAndCacheVolume(volumeId: string, options: VolumeLoaderOptions): Promise<Record<string, any>>;
@@ -420,10 +476,14 @@ declare namespace Enums {
         BlendModes,
         InterpolationType,
         RequestType,
-        ViewportType
+        ViewportType,
+        OrientationAxis
     }
 }
 export { Enums }
+
+// @public (undocumented)
+const EPSILON = 0.001;
 
 // @public (undocumented)
 export enum EVENTS {
@@ -431,6 +491,8 @@ export enum EVENTS {
     CACHE_SIZE_EXCEEDED = "CACHE_SIZE_EXCEEDED",
     // (undocumented)
     CAMERA_MODIFIED = "CORNERSTONE_CAMERA_MODIFIED",
+    // (undocumented)
+    CAMERA_RESET = "CORNERSTONE_CAMERA_RESET",
     // (undocumented)
     ELEMENT_DISABLED = "CORNERSTONE_ELEMENT_DISABLED",
     // (undocumented)
@@ -472,7 +534,9 @@ export enum EVENTS {
     // (undocumented)
     VOLUME_LOADED_FAILED = "CORNERSTONE_VOLUME_LOADED_FAILED",
     // (undocumented)
-    VOLUME_NEW_IMAGE = "CORNERSTONE_VOLUME_NEW_IMAGE"
+    VOLUME_NEW_IMAGE = "CORNERSTONE_VOLUME_NEW_IMAGE",
+    // (undocumented)
+    VOLUME_VIEWPORT_NEW_VOLUME = "CORNERSTONE_VOLUME_VIEWPORT_NEW_VOLUME"
 }
 
 // @public (undocumented)
@@ -535,6 +599,9 @@ type FlipDirection = {
 function getClosestImageId(imageVolume: IImageVolume, worldPos: Point3, viewPlaneNormal: Point3, viewUp: Point3): string;
 
 // @public (undocumented)
+function getClosestStackImageIndexForPoint(point: Point3, viewport: IStackViewport): number | null;
+
+// @public (undocumented)
 export function getEnabledElement(element: HTMLDivElement | undefined): IEnabledElement | undefined;
 
 // @public (undocumented)
@@ -547,7 +614,7 @@ export function getEnabledElements(): IEnabledElement[];
 function getImageSliceDataForVolumeViewport(viewport: IVolumeViewport): ImageSliceData;
 
 // @public (undocumented)
-function getMetaData(type: string, imageId: string): any;
+function getMetaData(type: string, query: string): any;
 
 // @public (undocumented)
 function getMinMax(storedPixelData: number[]): {
@@ -583,13 +650,22 @@ function getTargetVolumeAndSpacingInNormalDir(viewport: IVolumeViewport, camera:
 };
 
 // @public (undocumented)
+function getViewportImageCornersInWorld(viewport: IStackViewport | IVolumeViewport): Point3[];
+
+// @public (undocumented)
+function getViewportsWithImageURI(imageURI: string, renderingEngineId?: string): Array<Viewport_2>;
+
+// @public (undocumented)
+function getViewportsWithVolumeId(volumeId: string, renderingEngineId?: string): Array<IVolumeViewport>;
+
+// @public (undocumented)
 function getVolumeActorCorners(volumeActor: any): Array<Point3>;
 
 // @public (undocumented)
 function getVolumeViewportsContainingSameVolumes(targetViewport: IVolumeViewport, renderingEngineId?: string): Array<IVolumeViewport>;
 
 // @public (undocumented)
-function getVolumeViewportsContainingVolumeId(volumeId: string, renderingEngineId?: string): Array<IVolumeViewport>;
+function hasNaNValues(input: number[] | number): boolean;
 
 // @public (undocumented)
 interface ICache {
@@ -647,6 +723,8 @@ interface ICachedVolume {
 
 // @public (undocumented)
 interface ICamera {
+    // (undocumented)
+    clippingRange?: Point2;
     // (undocumented)
     flipHorizontal?: boolean;
     // (undocumented)
@@ -783,7 +861,7 @@ interface IImageData {
     // (undocumented)
     dimensions: Point3;
     // (undocumented)
-    direction: Float32Array;
+    direction: Mat3;
     // (undocumented)
     hasPixelSpacing?: boolean;
     // (undocumented)
@@ -825,11 +903,13 @@ interface IImageLoadObject {
 // @public (undocumented)
 interface IImageVolume {
     // (undocumented)
+    cancelLoading?: () => void;
+    // (undocumented)
     convertToCornerstoneImage?: (imageId: string, imageIdIndex: number) => IImageLoadObject;
     // (undocumented)
     dimensions: Point3;
     // (undocumented)
-    direction: Float32Array;
+    direction: Mat3;
     // (undocumented)
     hasPixelSpacing: boolean;
     // (undocumented)
@@ -997,9 +1077,11 @@ function imageToWorldCoords(imageId: string, imageCoords: Point2): Point3 | unde
 export class ImageVolume implements IImageVolume {
     constructor(props: IVolume);
     // (undocumented)
+    cancelLoading: () => void;
+    // (undocumented)
     dimensions: Point3;
     // (undocumented)
-    direction: Float32Array;
+    direction: Mat3;
     // (undocumented)
     hasPixelSpacing: boolean;
     // (undocumented)
@@ -1256,6 +1338,8 @@ interface IViewport {
     // (undocumented)
     id: string;
     // (undocumented)
+    isDisabled: boolean;
+    // (undocumented)
     options: ViewportInputOptions;
     // (undocumented)
     removeAllActors(): void;
@@ -1304,7 +1388,7 @@ interface IVolume {
     // (undocumented)
     dimensions: Point3;
     // (undocumented)
-    direction: Float32Array;
+    direction: Mat3;
     // (undocumented)
     imageData?: vtkImageData;
     // (undocumented)
@@ -1375,7 +1459,7 @@ interface IVolumeViewport extends IViewport {
     // (undocumented)
     getFrameOfReferenceUID: () => string;
     // (undocumented)
-    getImageData(): IImageData | undefined;
+    getImageData(volumeId?: string): IImageData | undefined;
     // (undocumented)
     getIntensityFromWorld(point: Point3): number;
     // (undocumented)
@@ -1383,11 +1467,17 @@ interface IVolumeViewport extends IViewport {
     // (undocumented)
     getSlabThickness(): number;
     // (undocumented)
+    hasImageURI: (imageURI: string) => boolean;
+    // (undocumented)
+    hasVolumeId: (volumeId: string) => boolean;
+    // (undocumented)
     removeVolumeActors(actorUIDs: Array<string>, immediate?: boolean): void;
     // (undocumented)
-    resetCamera(resetPan?: boolean, resetZoom?: boolean): boolean;
+    resetCamera(resetPan?: boolean, resetZoom?: boolean, resetToCenter?: boolean): boolean;
     // (undocumented)
     setBlendMode(blendMode: BlendModes, filterActorUIDs?: Array<string>, immediate?: boolean): void;
+    // (undocumented)
+    setOrientation(orientation: OrientationAxis): void;
     // (undocumented)
     setProperties({ voiRange }: VolumeViewportProperties, volumeId?: string, suppressEvents?: boolean): void;
     // (undocumented)
@@ -1417,6 +1507,19 @@ function loadImageToCanvas(canvas: HTMLCanvasElement, imageId: string, requestTy
 
 // @public (undocumented)
 function loadVolume(volumeId: string, options?: VolumeLoaderOptions): Promise<Types.IImageVolume>;
+
+// @public (undocumented)
+type Mat3 = [
+number,
+number,
+number,
+number,
+number,
+number,
+number,
+number,
+number
+];
 
 // @public (undocumented)
 type Metadata = {
@@ -1453,11 +1556,23 @@ const metadataProvider: {
 };
 
 // @public (undocumented)
-const ORIENTATION: Record<string, Orientation>;
+const mprCameraValues: any;
 
 // @public (undocumented)
-type Orientation = {
-    sliceNormal: Point3;
+enum OrientationAxis {
+    // (undocumented)
+    ACQUISITION = "acquisition",
+    // (undocumented)
+    AXIAL = "axial",
+    // (undocumented)
+    CORONAL = "coronal",
+    // (undocumented)
+    SAGITTAL = "sagittal"
+}
+
+// @public (undocumented)
+type OrientationVectors = {
+    viewPlaneNormal: Point3;
     viewUp: Point3;
 };
 
@@ -1465,12 +1580,16 @@ declare namespace planar {
     export {
         linePlaneIntersection,
         planeEquation,
-        threePlaneIntersection
+        threePlaneIntersection,
+        planeDistanceToPoint
     }
 }
 
 // @public (undocumented)
 type Plane = [number, number, number, number];
+
+// @public (undocumented)
+function planeDistanceToPoint(plane: Plane, point: Point3, signed?: boolean): number;
 
 // @public (undocumented)
 function planeEquation(normal: Point3, point: Point3 | vec3): Plane;
@@ -1483,6 +1602,9 @@ type Point3 = [number, number, number];
 
 // @public (undocumented)
 type Point4 = [number, number, number, number];
+
+// @public (undocumented)
+const presets: ViewportPreset[];
 
 // @public (undocumented)
 type PreStackNewImageEvent = CustomEvent_2<PreStackNewImageEventDetail>;
@@ -1525,7 +1647,7 @@ function registerVolumeLoader(scheme: string, volumeLoader: Types.VolumeLoaderFn
 function removeAllProviders(): void;
 
 // @public (undocumented)
-function removeProvider(provider: (type: string, imageId: string) => {
+function removeProvider(provider: (type: string, query: any) => {
     any: any;
 }): void;
 
@@ -1575,7 +1697,7 @@ export class RenderingEngine implements IRenderingEngine {
     // (undocumented)
     renderViewports(viewportIds: Array<string>): void;
     // (undocumented)
-    resize(immediate?: boolean, resetPan?: boolean, resetZoom?: boolean): void;
+    resize(immediate?: boolean, keepCamera?: boolean): void;
     // (undocumented)
     setViewports(publicViewportInputEntries: Array<PublicViewportInput>): void;
 }
@@ -1613,9 +1735,6 @@ type ScalingParameters = {
     suvlbm?: number;
     suvbsa?: number;
 };
-
-// @public (undocumented)
-export function setMaxSimultaneousRequests(newMaxSimultaneousRequests: any): void;
 
 // @public (undocumented)
 export class Settings {
@@ -1656,6 +1775,12 @@ export function setVolumesForViewports(renderingEngine: IRenderingEngine, volume
 function snapFocalPointToSlice(focalPoint: Point3, position: Point3, sliceRange: ActorSliceRange, viewPlaneNormal: Point3, spacingInNormalDirection: number, deltaFrames: number): {
     newFocalPoint: Point3;
     newPosition: Point3;
+};
+
+// @public (undocumented)
+const spatialRegistrationMetadataProvider: {
+    add: (query: string[], payload: mat4) => void;
+    get: (type: string, query: string[]) => mat4;
 };
 
 // @public (undocumented)
@@ -1733,7 +1858,7 @@ export class StackViewport extends Viewport implements IStackViewport {
     // (undocumented)
     setActors(actors: Array<ActorEntry>): void;
     // (undocumented)
-    setCamera(cameraInterface: ICamera): void;
+    setCamera(cameraInterface: ICamera, storeAsInitialCamera?: boolean): void;
     // (undocumented)
     setColormap(colormap: CPUFallbackColormapData): void;
     // (undocumented)
@@ -1839,11 +1964,13 @@ declare namespace Types {
         IVolumeLoadObject,
         IVolumeInput,
         VolumeInputCallback,
+        ViewportPreset,
         Metadata,
-        Orientation,
+        OrientationVectors,
         Point2,
         Point3,
         Point4,
+        Mat3,
         Plane,
         ViewportInputOptions,
         VOIRange,
@@ -1894,7 +2021,7 @@ declare namespace utilities {
         getVolumeActorCorners,
         indexWithinDimensions,
         getVolumeViewportsContainingSameVolumes,
-        getVolumeViewportsContainingVolumeId,
+        getViewportsWithVolumeId,
         transformWorldToIndex,
         loadImageToCanvas,
         renderToCanvas,
@@ -1903,7 +2030,14 @@ declare namespace utilities {
         getSliceRange,
         snapFocalPointToSlice,
         getImageSliceDataForVolumeViewport,
-        isImageActor
+        isImageActor,
+        getViewportsWithImageURI,
+        getClosestStackImageIndexForPoint,
+        calculateViewportsSpatialRegistration,
+        spatialRegistrationMetadataProvider,
+        getViewportImageCornersInWorld,
+        hasNaNValues,
+        applyPreset
     }
 }
 export { utilities }
@@ -1920,8 +2054,6 @@ export class Viewport implements IViewport {
     addActor(actorEntry: ActorEntry): void;
     // (undocumented)
     addActors(actors: Array<ActorEntry>, resetCameraPanAndZoom?: boolean): void;
-    // (undocumented)
-    protected applyFlipTx: (worldPos: Point3) => Point3;
     // (undocumented)
     readonly canvas: HTMLCanvasElement;
     // (undocumented)
@@ -1957,6 +2089,11 @@ export class Viewport implements IViewport {
     // (undocumented)
     _getEdges(bounds: Array<number>): Array<[number[], number[]]>;
     // (undocumented)
+    _getFocalPointForResetCamera(centeredFocalPoint: Point3, previousCamera: ICamera, { resetPan, resetToCenter }: {
+        resetPan?: boolean;
+        resetToCenter?: boolean;
+    }): Point3;
+    // (undocumented)
     getFrameOfReferenceUID: () => string;
     // (undocumented)
     getPan(): Point2;
@@ -1977,6 +2114,8 @@ export class Viewport implements IViewport {
     // (undocumented)
     protected initialCamera: ICamera;
     // (undocumented)
+    isDisabled: boolean;
+    // (undocumented)
     _isInBounds(point: Point3, bounds: number[]): boolean;
     // (undocumented)
     options: ViewportInputOptions;
@@ -1993,7 +2132,7 @@ export class Viewport implements IViewport {
     // (undocumented)
     reset(immediate?: boolean): void;
     // (undocumented)
-    protected resetCamera(resetPan?: boolean, resetZoom?: boolean, storeAsInitialCamera?: boolean): boolean;
+    protected resetCamera(resetPan?: boolean, resetZoom?: boolean, resetToCenter?: boolean, storeAsInitialCamera?: boolean): boolean;
     // (undocumented)
     protected resetCameraNoEvent(): void;
     // (undocumented)
@@ -2041,9 +2180,33 @@ export class Viewport implements IViewport {
 // @public (undocumented)
 type ViewportInputOptions = {
     background?: [number, number, number];
-    orientation?: Orientation;
+    orientation?: OrientationAxis | OrientationVectors;
     suppressEvents?: boolean;
 };
+
+// @public (undocumented)
+interface ViewportPreset {
+    // (undocumented)
+    ambient: string;
+    // (undocumented)
+    colorTransfer: string;
+    // (undocumented)
+    diffuse: string;
+    // (undocumented)
+    gradientOpacity: string;
+    // (undocumented)
+    interpolation: string;
+    // (undocumented)
+    name: string;
+    // (undocumented)
+    scalarOpacity: string;
+    // (undocumented)
+    shade: string;
+    // (undocumented)
+    specular: string;
+    // (undocumented)
+    specularPower: string;
+}
 
 // @public (undocumented)
 enum ViewportType {
@@ -2052,7 +2215,9 @@ enum ViewportType {
     // (undocumented)
     PERSPECTIVE = "perspective",
     // (undocumented)
-    STACK = "stack"
+    STACK = "stack",
+    // (undocumented)
+    VOLUME_3D = "volume3d"
 }
 
 // @public (undocumented)
@@ -2150,46 +2315,28 @@ type VolumeNewImageEventDetail = {
 };
 
 // @public (undocumented)
-export class VolumeViewport extends Viewport implements IVolumeViewport {
+export class VolumeViewport extends BaseVolumeViewport {
     constructor(props: ViewportInput);
     // (undocumented)
     addVolumes(volumeInputArray: Array<IVolumeInput>, immediate?: boolean, suppressEvents?: boolean): Promise<void>;
-    // (undocumented)
-    canvasToWorld: (canvasPos: Point2) => Point3;
-    // (undocumented)
-    flip(flipDirection: FlipDirection): void;
-    // (undocumented)
-    getBounds(): number[];
     // (undocumented)
     getCurrentImageId: () => string | undefined;
     // (undocumented)
     getCurrentImageIdIndex: () => number | undefined;
     // (undocumented)
-    getFrameOfReferenceUID: () => string;
-    // (undocumented)
-    getImageData(): IImageData | undefined;
-    // (undocumented)
     getIntensityFromWorld(point: Point3): number;
     // (undocumented)
     getSlabThickness(): number;
     // (undocumented)
-    removeVolumeActors(actorUIDs: Array<string>, immediate?: boolean): void;
-    // (undocumented)
-    resetCamera(resetPan?: boolean, resetZoom?: boolean): boolean;
+    resetCamera(resetPan?: boolean, resetZoom?: boolean, resetToCenter?: boolean): boolean;
     // (undocumented)
     setBlendMode(blendMode: BlendModes, filterActorUIDs?: any[], immediate?: boolean): void;
     // (undocumented)
-    setProperties({ voiRange }?: VolumeViewportProperties, volumeId?: string, suppressEvents?: boolean): void;
+    setOrientation(orientation: OrientationAxis, immediate?: boolean): void;
     // (undocumented)
     setSlabThickness(slabThickness: number, filterActorUIDs?: any[]): void;
     // (undocumented)
     setVolumes(volumeInputArray: Array<IVolumeInput>, immediate?: boolean, suppressEvents?: boolean): Promise<void>;
-    // (undocumented)
-    useCPURendering: boolean;
-    // (undocumented)
-    static get useCustomRenderingPipeline(): boolean;
-    // (undocumented)
-    worldToCanvas: (worldPos: Point3) => Point2;
 }
 
 // @public (undocumented)

@@ -4,7 +4,7 @@ import { IViewport } from './IViewport';
 import { IVolumeInput } from './IVolumeInput';
 import FlipDirection from './FlipDirection';
 import IImageData from './IImageData';
-import { BlendModes } from '../enums';
+import { BlendModes, OrientationAxis } from '../enums';
 import { VolumeViewportProperties } from '.';
 
 /**
@@ -31,6 +31,18 @@ export default interface IVolumeViewport extends IViewport {
    * If so, it uses the origin and focalPoint to calculate the slice index.
    */
   getCurrentImageIdIndex: () => number;
+
+  /**
+   * Checks if the viewport has a volume actor with the given volumeId
+   */
+  hasVolumeId: (volumeId: string) => boolean;
+
+  /**
+   * if the volume viewport has imageURI (no loader schema)
+   * in one of its volume actors
+   */
+  hasImageURI: (imageURI: string) => boolean;
+
   /**
    * Uses viewport camera and volume actor to decide if the viewport
    * is looking at the volume in the direction of acquisition (imageIds).
@@ -87,7 +99,11 @@ export default interface IVolumeViewport extends IViewport {
   /**
    * Reset the camera for the volume viewport
    */
-  resetCamera(resetPan?: boolean, resetZoom?: boolean): boolean;
+  resetCamera(
+    resetPan?: boolean,
+    resetZoom?: boolean,
+    resetToCenter?: boolean
+  ): boolean;
   /**
    * Sets the blendMode for actors of the viewport.
    */
@@ -111,6 +127,11 @@ export default interface IVolumeViewport extends IViewport {
    * Returns the image and its properties that is being shown inside the
    * stack viewport. It returns, the image dimensions, image direction,
    * image scalar data, vtkImageData object, metadata, and scaling (e.g., PET suvbw)
+   * Note: since the volume viewport supports fusion, to get the
+   * image data for a specific volume, use the optional volumeId
+   * argument.
    */
-  getImageData(): IImageData | undefined;
+  getImageData(volumeId?: string): IImageData | undefined;
+
+  setOrientation(orientation: OrientationAxis): void;
 }
