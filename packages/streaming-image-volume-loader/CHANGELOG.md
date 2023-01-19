@@ -3,6 +3,39 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.10.1](https://github.com/cornerstonejs/cornerstone3D-beta/compare/@cornerstonejs/streaming-image-volume-loader@0.10.0...@cornerstonejs/streaming-image-volume-loader@0.10.1) (2023-01-19)
+
+
+### Bug Fixes
+
+* **StreamingImageVolume:** scaling bug for undefined parameters ([#376](https://github.com/cornerstonejs/cornerstone3D-beta/issues/376)) ([a366d9d](https://github.com/cornerstonejs/cornerstone3D-beta/commit/a366d9decaad125dc566315e0ae2bf882762d8ba))
+
+
+
+
+
+# [0.10.0](https://github.com/cornerstonejs/cornerstone3D-beta/compare/@cornerstonejs/streaming-image-volume-loader@0.9.0...@cornerstonejs/streaming-image-volume-loader@0.10.0) (2023-01-16)
+
+
+### Features
+
+* add multiframe example ([#331](https://github.com/cornerstonejs/cornerstone3D-beta/issues/331)) ([327f17a](https://github.com/cornerstonejs/cornerstone3D-beta/commit/327f17a551f869c8f454566782be720367291235))
+
+
+
+
+
+# [0.9.0](https://github.com/cornerstonejs/cornerstone3D-beta/compare/@cornerstonejs/streaming-image-volume-loader@0.8.3...@cornerstonejs/streaming-image-volume-loader@0.9.0) (2023-01-13)
+
+
+### Features
+
+* add support for WADO-URI Streaming Volume Loading ([#354](https://github.com/cornerstonejs/cornerstone3D-beta/issues/354)) ([a1e4a36](https://github.com/cornerstonejs/cornerstone3D-beta/commit/a1e4a36e92870ca65c7b9cc1b738aa219686e861))
+
+
+
+
+
 ## [0.8.3](https://github.com/cornerstonejs/cornerstone3D-beta/compare/@cornerstonejs/streaming-image-volume-loader@0.8.2...@cornerstonejs/streaming-image-volume-loader@0.8.3) (2023-01-11)
 
 **Note:** Version bump only for package @cornerstonejs/streaming-image-volume-loader
