@@ -960,6 +960,9 @@ class EllipticalROITool extends AnnotationTool {
   };
 
   _getTextLines = (data, targetId: string, isPreScaled: boolean): string[] => {
+    if (this.configuration.customTextLines) {
+      return this.configuration.customTextLines(data);
+    }
     const cachedVolumeStats = data.cachedStats[targetId];
     const { area, mean, stdDev, max, isEmptyArea, Modality, areaUnit } =
       cachedVolumeStats;

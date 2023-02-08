@@ -531,6 +531,9 @@ class ProbeTool extends AnnotationTool {
     targetId: string,
     isPreScaled: boolean
   ): string[] | undefined {
+    if (this.configuration.customTextLines) {
+      return this.configuration.customTextLines(data);
+    }
     const cachedVolumeStats = data.cachedStats[targetId];
     const { index, Modality, value, SUVBw, SUVLbm, SUVBsa } = cachedVolumeStats;
 

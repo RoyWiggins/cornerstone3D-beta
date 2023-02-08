@@ -1,36 +1,3 @@
-// import {
-//   RenderingEngine,
-//   Types,
-//   Enums,
-//   setVolumesForViewports,
-//   volumeLoader,
-//   CONSTANTS,
-// } from '@cornerstonejs/core';
-// import {
-//   addTool,
-//   BrushTool,
-//   SegmentationDisplayTool,
-//   BidirectionalTool,
-//   ToolGroupManager,
-//   WindowLevelTool,
-//   ZoomTool,
-//   segmentation,
-//   Enums as csToolsEnums,
-// } from '@cornerstonejs/tools';
-// import {
-//   initDemo,
-//   createImageIdsAndCacheMetaData,
-//   setTitleAndDescription,
-// } from '../../../utils/demo/helpers';
-
-// This is for debugging purposes
-console.warn(
-  'Test --------->'
-);
-
-// const { ViewportType } = Enums;
-// const { ORIENTATION } = CONSTANTS;
-
 import { api as dwcApi } from 'dicomweb-client';
 import dcmjs from 'dcmjs';
 
@@ -38,13 +5,11 @@ import * as cornerstone from '@cornerstonejs/core'
 import * as tools from '@cornerstonejs/tools'
 import * as helpers from '../../../utils/demo/helpers'
 import * as cornerstoneWADOImageLoader from 'cornerstone-wado-image-loader';
-import * as WADORSHeaderProvider from '../../../utils/demo/helpers/WADORSHeaderProvider';
 
 window.cornerstone = cornerstone
 window.cornerstone.tools = tools
 window.cornerstone.helpers = helpers
 window.cornerstone.cornerstoneWADOImageLoader = cornerstoneWADOImageLoader
-window.cornerstone.WADORSHeaderProvider = WADORSHeaderProvider
 
 window.dicomweb = dwcApi
 window.dcmjs = dcmjs
