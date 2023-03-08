@@ -518,7 +518,7 @@ class EllipticalROITool extends AnnotationTool {
       worldPosition[2] += worldPosDelta[2];
 
       textBox.hasMoved = true;
-    } else if (handleIndex === undefined) {
+    } else if (handleIndex === undefined || evt.detail.event.shiftKey) {
       // Moving tool
       const { deltaPoints } = eventDetail;
       const worldPosDelta = deltaPoints.world;
