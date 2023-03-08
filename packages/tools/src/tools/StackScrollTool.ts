@@ -25,6 +25,7 @@ class StackScrollTool extends BaseTool {
       configuration: {
         invert: false,
         debounceIfNotLoaded: true,
+        loopScroll: false
       },
     }
   ) {
@@ -40,7 +41,7 @@ class StackScrollTool extends BaseTool {
     const { viewport } = getEnabledElementByIds(viewportId, renderingEngineId);
 
     const targetId = this.getTargetId(viewport);
-    const { debounceIfNotLoaded, invert } = this.configuration;
+    const { debounceIfNotLoaded, invert, loopScroll } = this.configuration;
 
     const deltaPointY = deltaPoints.canvas[1];
 
@@ -63,6 +64,7 @@ class StackScrollTool extends BaseTool {
         delta: invert ? -imageIdIndexOffset : imageIdIndexOffset,
         volumeId,
         debounceLoading: debounceIfNotLoaded,
+        loopScroll
       });
 
       this.deltaY = deltaY % pixelsPerImage;

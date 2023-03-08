@@ -3,6 +3,7 @@ type ScrollOptions = {
   delta: number;
   volumeId?: string;
   debounceLoading?: boolean;
+  loopScroll?: boolean;
 };
 
 export default ScrollOptions;

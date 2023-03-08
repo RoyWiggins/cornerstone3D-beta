@@ -1906,11 +1906,15 @@ class StackViewport extends Viewport implements IStackViewport {
     const numberOfFrames = imageIds.length;
 
     let newTargetImageIdIndex = currentTargetImageIdIndex + delta;
-    newTargetImageIdIndex = Math.max(0, newTargetImageIdIndex);
+
+    function mod(n, m) {
+      return ((n % m) + m) % m;
+    }
 
     if (loop) {
-      newTargetImageIdIndex = newTargetImageIdIndex % numberOfFrames;
+      newTargetImageIdIndex = mod(newTargetImageIdIndex, numberOfFrames);
     } else {
+      newTargetImageIdIndex = Math.max(0, newTargetImageIdIndex);
       newTargetImageIdIndex = Math.min(
         numberOfFrames - 1,
         newTargetImageIdIndex
