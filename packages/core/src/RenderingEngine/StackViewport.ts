@@ -135,6 +135,7 @@ class StackViewport extends Viewport implements IStackViewport {
   private initialVOIRange: VOIRange;
   private invert = false;
   private interpolationType: InterpolationType;
+  private RGBTransferFunction: any;
 
   // Helpers
   private _imageData: vtkImageDataType;
@@ -546,9 +547,13 @@ class StackViewport extends Viewport implements IStackViewport {
       invert,
       interpolationType,
       rotation,
+      RGBTransferFunction,
     }: StackViewportProperties = {},
     suppressEvents = false
   ): void {
+    if (typeof RGBTransferFunction !== 'undefined') {
+      this.RGBTransferFunction = RGBTransferFunction;
+    }
     // if voi is not applied for the first time, run the setVOI function
     // which will apply the default voi
     if (typeof voiRange !== 'undefined' || !this.voiApplied) {
@@ -580,6 +585,7 @@ class StackViewport extends Viewport implements IStackViewport {
       rotation: this.rotationCache,
       interpolationType: this.interpolationType,
       invert: this.invert,
+      RGBTransferFunction: this.RGBTransferFunction
     };
   };
 
@@ -1796,7 +1802,6 @@ class StackViewport extends Viewport implements IStackViewport {
     // Note: the 1024 here is what VTK would normally do to resample a color transfer function
     // before it is put into the GPU. Setting it with a length of 1024 allows us to
     // avoid that resampling step.
-    const cfun = vtkColorTransferFunction.newInstance();
     let lower = 0;
     let upper = 1024;
     if (
@@ -1807,10 +1812,15 @@ class StackViewport extends Viewport implements IStackViewport {
       lower = voiRange.lower;
       upper = voiRange.upper;
     }
-    cfun.addRGBPoint(lower, 0.0, 0.0, 0.0);
-    cfun.addRGBPoint(upper, 1.0, 1.0, 1.0);
-    actor.getProperty().setRGBTransferFunction(0, cfun);
 
+    if (!this.RGBTransferFunction) {
+      const cfun = vtkColorTransferFunction.newInstance();
+      cfun.addRGBPoint(lower, 0.0, 0.0, 0.0);
+      cfun.addRGBPoint(upper, 1.0, 1.0, 1.0);
+      actor.getProperty().setRGBTransferFunction(0, cfun);
+    } else {
+      actor.getProperty().setRGBTransferFunction(0, this.RGBTransferFunction({lower, upper}));
+    }
     // Saving position of camera on render, to cache the panning
     const { focalPoint } = this.getCamera();
     this.cameraFocalPointOnRender = focalPoint;

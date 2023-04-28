@@ -15,6 +15,7 @@ type StackViewportProperties = {
   rotation?: number;
   /** suppress events (optional) */
   suppressEvents?: boolean;
+  RGBTransferFunction?: any;
 };
 
 export default StackViewportProperties;
