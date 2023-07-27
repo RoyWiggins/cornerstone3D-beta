@@ -92,6 +92,10 @@
       "renderToCanvas": {
         "name": "Render To Canvas",
         "description": "Demonstrates how to use the api to render to a canvas directly"
+      },
+      "changeColorMap": {
+        "name": "Change the colormap and adjusting the opacity",
+        "description": "Demonstrate how to interact with a fusion viewport, specifically by changing the colormap and adjusting the opacity."
       }
     },
     "core-advanced": {
@@ -132,6 +136,10 @@
       "stackAnnotationTools": {
         "name": "Stack Annotation Tools",
         "description": "Demonstrates usage of various annotation tools (Probe, Rectangle ROI, Elliptical ROI, Bidirectional measurements) on a Stack Viewport."
+      },
+      "calibrationTools": {
+        "name": "Calibration Tools",
+        "description": "Demonstrates usage of calibration tools on a Stack Viewport."
       },
       "volumeAnnotationTools": {
         "name": "Volume Annotation Tools ",

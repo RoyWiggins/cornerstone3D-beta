@@ -1,6 +1,7 @@
 import vtkVolume from '@kitware/vtk.js/Rendering/Core/Volume';
 import vtkColorTransferFunction from '@kitware/vtk.js/Rendering/Core/ColorTransferFunction';
 import vtkColorMaps from '@kitware/vtk.js/Rendering/Core/ColorTransferFunction/ColorMaps';
+import vtkPiecewiseFunction from '@kitware/vtk.js/Common/DataModel/PiecewiseFunction';
 
 import cache from '../cache';
 import {
@@ -12,6 +13,7 @@ import {
   BlendModes,
   Events,
   OrientationAxis,
+  ViewportStatus,
   VOILUTFunctionType,
 } from '../enums';
 import ViewportType from '../enums/ViewportType';
@@ -50,7 +52,7 @@ import volumeNewImageEventDispatcher, {
 import Viewport from './Viewport';
 import type { vtkSlabCamera as vtkSlabCameraType } from './vtkClasses/vtkSlabCamera';
 import vtkSlabCamera from './vtkClasses/vtkSlabCamera';
-import vtkPiecewiseFunction from '@kitware/vtk.js/Common/DataModel/PiecewiseFunction';
+import transformWorldToIndex from '../utilities/transformWorldToIndex';
 
 /**
  * Abstract base class for volume viewports. VolumeViewports are used to render
@@ -244,9 +246,9 @@ abstract class BaseVolumeViewport extends Viewport implements IVolumeViewport {
     mapper.setSampleDistance(1.0);
 
     const cfun = vtkColorTransferFunction.newInstance();
-    let colormapObj = colormapUtils.getColormap(colormap);
+    let colormapObj = colormapUtils.getColormap(colormap.name);
 
-    const { name, opacityMapping } = colormap;
+    const { name } = colormap;
 
     if (!colormapObj) {
       colormapObj = vtkColorMaps.getPresetByName(name);
@@ -264,20 +266,37 @@ abstract class BaseVolumeViewport extends Viewport implements IVolumeViewport {
     cfun.applyColorMap(colormapObj);
     cfun.setMappingRange(range[0], range[1]);
     volumeActor.getProperty().setRGBTransferFunction(0, cfun);
+  }
 
-    const ofun = vtkPiecewiseFunction.newInstance();
-    ofun.addPoint(range[0], 0.0);
-    ofun.addPoint(range[1], 1.0);
-    volumeActor.getProperty().setScalarOpacity(0, ofun);
-
-    if (!opacityMapping) {
+  /**
+   * Sets the opacity for the volume with the given ID.
+   *
+   * @param colormap - An object containing opacity that can be a number or an array of OpacityMapping
+   * @param volumeId - The ID of the volume to set the opacity for.
+   *
+   * @returns void
+   */
+  private setOpacity(colormap: ColormapPublic, volumeId: string) {
+    const applicableVolumeActorInfo = this._getApplicableVolumeActor(volumeId);
+    if (!applicableVolumeActorInfo) {
       return;
     }
+    const { volumeActor } = applicableVolumeActorInfo;
+    const ofun = vtkPiecewiseFunction.newInstance();
+    if (typeof colormap.opacity === 'number') {
+      const range = volumeActor
+        .getProperty()
+        .getRGBTransferFunction(0)
+        .getRange();
 
-    // add custom opacity points
-    opacityMapping.forEach(({ opacity, value }) => {
-      ofun.addPoint(value, opacity);
-    });
+      ofun.addPoint(range[0], colormap.opacity);
+      ofun.addPoint(range[1], colormap.opacity);
+    } else {
+      colormap.opacity.forEach(({ opacity, value }) => {
+        ofun.addPoint(value, opacity);
+      });
+    }
+    volumeActor.getProperty().setScalarOpacity(0, ofun);
   }
 
   /**
@@ -316,6 +335,7 @@ abstract class BaseVolumeViewport extends Viewport implements IVolumeViewport {
         volumeId: volumeIdToUse,
         VOILUTFunction: this.VOILUTFunction,
         invert: this.inverted,
+        invertStateChanged: true,
       };
 
       triggerEvent(this.element, Events.VOI_MODIFIED, eventDetail);
@@ -435,8 +455,12 @@ abstract class BaseVolumeViewport extends Viewport implements IVolumeViewport {
   ): void {
     // Note: colormap should always be done first, since we can then
     // modify the voiRange
-    if (colormap !== undefined) {
+
+    if (colormap?.name) {
       this.setColormap(colormap, volumeId, suppressEvents);
+    }
+    if (colormap?.opacity != null) {
+      this.setOpacity(colormap, volumeId);
     }
 
     if (voiRange !== undefined) {
@@ -500,8 +524,7 @@ abstract class BaseVolumeViewport extends Viewport implements IVolumeViewport {
         const [lower, upper] =
           this.VOILUTFunction === 'SIGMOID'
             ? getVoiFromSigmoidRGBTransferFunction(cfun)
-            : // @ts-ignore
-              cfun.getRange();
+            : cfun.getRange();
         return { volumeId, voiRange: { lower, upper } };
       })
       .filter(Boolean);
@@ -569,6 +592,7 @@ abstract class BaseVolumeViewport extends Viewport implements IVolumeViewport {
     }
 
     this._setVolumeActors(volumeActors);
+    this.viewportStatus = ViewportStatus.PRE_RENDER;
 
     triggerEvent(this.element, Events.VOLUME_VIEWPORT_NEW_VOLUME, {
       viewportId: this.id,
@@ -599,7 +623,6 @@ abstract class BaseVolumeViewport extends Viewport implements IVolumeViewport {
         `imageVolume with id: ${firstImageVolume.volumeId} does not exist`
       );
     }
-
     const volumeActors = [];
 
     await this._isValidVolumeInputArray(
@@ -1011,45 +1034,64 @@ abstract class BaseVolumeViewport extends Viewport implements IVolumeViewport {
       );
     }
   }
-
   /**
-   * Reset the camera for the volume viewport
+   * Gets the largest slab thickness from all actors in the viewport.
+   *
+   * @returns slabThickness - The slab thickness.
    */
-  resetCamera(
-    resetPan?: boolean,
-    resetZoom?: boolean,
-    resetToCenter?: boolean
-  ): boolean {
-    return super.resetCamera(resetPan, resetZoom, resetToCenter);
+  public getSlabThickness(): number {
+    const actors = this.getActors();
+    let slabThickness = RENDERING_DEFAULTS.MINIMUM_SLAB_THICKNESS;
+    actors.forEach((actor) => {
+      if (actor.slabThickness > slabThickness) {
+        slabThickness = actor.slabThickness;
+      }
+    });
+
+    return slabThickness;
+  }
+  /**
+   * Given a point in world coordinates, return the intensity at that point
+   * @param point - The point in world coordinates to get the intensity
+   * from.
+   * @returns The intensity value of the voxel at the given point.
+   */
+  public getIntensityFromWorld(point: Point3): number {
+    const actorEntry = this.getDefaultActor();
+    if (!actorIsA(actorEntry, 'vtkVolume')) {
+      return;
+    }
+
+    const { actor, uid } = actorEntry;
+    const imageData = actor.getMapper().getInputData();
+
+    const volume = cache.getVolume(uid);
+    const { dimensions } = volume;
+
+    const index = transformWorldToIndex(imageData, point);
+
+    const voxelIndex =
+      index[2] * dimensions[0] * dimensions[1] +
+      index[1] * dimensions[0] +
+      index[0];
+
+    return volume.getScalarData()[voxelIndex];
   }
 
-  getCurrentImageIdIndex = (): number => {
-    throw new Error('Method not implemented.');
-  };
+  abstract getCurrentImageIdIndex(): number;
 
-  getCurrentImageId = (): string => {
-    throw new Error('Method not implemented.');
-  };
+  abstract getCurrentImageId(): string;
 
-  getIntensityFromWorld(point: Point3): number {
-    throw new Error('Method not implemented.');
-  }
-
-  setBlendMode(
+  abstract setBlendMode(
     blendMode: BlendModes,
-    filterActorUIDs?: string[],
+    filterActorUIDs?: Array<string>,
     immediate?: boolean
-  ): void {
-    throw new Error('Method not implemented.');
-  }
+  ): void;
 
-  setSlabThickness(slabThickness: number, filterActorUIDs?: string[]): void {
-    throw new Error('Method not implemented.');
-  }
-
-  getSlabThickness(): number {
-    throw new Error('Method not implemented.');
-  }
+  abstract setSlabThickness(
+    slabThickness: number,
+    filterActorUIDs?: Array<string>
+  ): void;
 }
 
 export default BaseVolumeViewport;

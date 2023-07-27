@@ -4,7 +4,9 @@
 
 ```ts
 
+import type { GetGPUTier } from 'detect-gpu';
 import type { mat4 } from 'gl-matrix';
+import type { TierResult } from 'detect-gpu';
 import type vtkActor from '@kitware/vtk.js/Rendering/Core/Actor';
 import type { vtkColorTransferFunction } from '@kitware/vtk.js/Rendering/Core/ColorTransferFunction';
 import type { vtkImageData } from '@kitware/vtk.js/Common/DataModel/ImageData';
@@ -584,7 +586,7 @@ export class BrushTool extends BaseTool {
 function calculateAreaOfPoints(points: Types_2.Point2[]): number;
 
 // @public (undocumented)
-function calibrateImageSpacing(imageId: string, renderingEngine: Types_2.IRenderingEngine, rowPixelSpacing: number, columnPixelSpacing: number): void;
+function calibrateImageSpacing(imageId: string, renderingEngine: Types_2.IRenderingEngine, calibrationOrScale: Types_2.IImageCalibration | number): void;
 
 // @public
 type CameraModifiedEvent = CustomEvent_2<CameraModifiedEventDetail>;
@@ -673,7 +675,7 @@ export class CircleROITool extends AnnotationTool {
     // (undocumented)
     addNewAnnotation: (evt: EventTypes_2.InteractionEventType) => CircleROIAnnotation;
     // (undocumented)
-    _calculateCachedStats: (annotation: any, viewport: any, renderingEngine: any, enabledElement: any) => any;
+    _calculateCachedStats: (annotation: any, viewport: any, renderingEngine: any, enabledElement: any, modalityUnitOptions: ModalityUnitOptions) => any;
     // (undocumented)
     cancel: (element: HTMLDivElement) => any;
     // (undocumented)
@@ -698,7 +700,7 @@ export class CircleROITool extends AnnotationTool {
     // (undocumented)
     _endCallback: (evt: EventTypes_2.InteractionEventType) => void;
     // (undocumented)
-    _getTextLines: (data: any, targetId: string, isPreScaled: boolean, isSuvScaled: boolean) => string[];
+    _getTextLines: (data: any, targetId: string) => string[];
     // (undocumented)
     handleSelectedCallback: (evt: EventTypes_2.InteractionEventType, annotation: CircleROIAnnotation, handle: ToolHandle) => void;
     // (undocumented)
@@ -806,6 +808,8 @@ export class CobbAngleTool extends AnnotationTool {
     // (undocumented)
     isPointNearTool: (element: HTMLDivElement, annotation: AngleAnnotation, canvasCoords: Types_2.Point2, proximity: number) => boolean;
     // (undocumented)
+    _mouseDownCallback: (evt: EventTypes_2.MouseUpEventType | EventTypes_2.MouseClickEventType) => void;
+    // (undocumented)
     mouseDragCallback: any;
     // (undocumented)
     _mouseDragCallback: (evt: EventTypes_2.MouseDragEventType | EventTypes_2.MouseMoveEventType) => void;
@@ -840,8 +844,17 @@ type ColorLUT = Array<Color>;
 
 // @public (undocumented)
 type ColormapPublic = {
-    name: string;
-    opacityMapping?: OpacityMapping[];
+    name?: string;
+    opacity?: OpacityMapping[] | number;
+    /** midpoint mapping between values to opacity if the colormap
+    * is getting used for fusion, this is an array of arrays which
+    * each array containing 2 values, the first value is the value
+    * to map to opacity and the second value is the opacity value.
+    * By default, the minimum value is mapped to 0 opacity and the
+    * maximum value is mapped to 1 opacity, but you can configure
+    * the points in the middle to be mapped to different opacities
+    * instead of a linear mapping from 0 to 1.
+    */
 };
 
 // @public (undocumented)
@@ -913,7 +926,8 @@ function copyPointsList(points: ITouchPoints[]): ITouchPoints[];
 
 // @public (undocumented)
 type Cornerstone3DConfig = {
-    detectGPU: any;
+    gpuTier?: TierResult;
+    detectGPUConfig: GetGPUTier;
     rendering: {
         // vtk.js supports 8bit integer textures and 32bit float textures.
         // However, if the client has norm16 textures (it can be seen by visiting
@@ -1162,6 +1176,8 @@ type CPUIImageData = {
     scalarData: PixelDataTypedArray;
     scaling: Scaling;
     hasPixelSpacing?: boolean;
+    calibration?: IImageCalibration;
+
     preScale?: {
         scaled?: boolean;
         scalingParameters?: {
@@ -1638,7 +1654,7 @@ export class EllipticalROITool extends AnnotationTool {
     // (undocumented)
     addNewAnnotation: (evt: EventTypes_2.InteractionEventType) => EllipticalROIAnnotation;
     // (undocumented)
-    _calculateCachedStats: (annotation: any, viewport: any, renderingEngine: any, enabledElement: any) => any;
+    _calculateCachedStats: (annotation: any, viewport: any, renderingEngine: any, enabledElement: any, modalityUnitOptions: ModalityUnitOptions) => any;
     // (undocumented)
     cancel: (element: HTMLDivElement) => any;
     // (undocumented)
@@ -1669,7 +1685,7 @@ export class EllipticalROITool extends AnnotationTool {
     // (undocumented)
     _getCanvasEllipseCenter(ellipseCanvasPoints: Types_2.Point2[]): Types_2.Point2;
     // (undocumented)
-    _getTextLines: (data: any, targetId: string, isPreScaled: boolean, isSuvScaled: boolean) => string[];
+    _getTextLines: (data: any, targetId: string) => string[];
     // (undocumented)
     handleSelectedCallback: (evt: EventTypes_2.InteractionEventType, annotation: EllipticalROIAnnotation, handle: ToolHandle) => void;
     // (undocumented)
@@ -1802,6 +1818,8 @@ declare namespace EventTypes {
         ImageRenderedEvent,
         ImageVolumeModifiedEvent,
         ImageVolumeModifiedEventDetail,
+        ImageVolumeLoadingCompletedEvent,
+        ImageVolumeLoadingCompletedEventDetail,
         ImageLoadedEvent,
         ImageLoadedEventDetail,
         ImageLoadedFailedEventDetail,
@@ -2453,7 +2471,7 @@ interface IImage {
     rowPixelSpacing: number;
     rows: number;
     scaling?: {
-        PET?: {
+        PT?: {
             // @TODO: Do these values exist?
             SUVlbmFactor?: number;
             SUVbsaFactor?: number;
@@ -2483,7 +2501,21 @@ interface IImage {
 }
 
 // @public
+interface IImageCalibration {
+    aspect?: number;
+    // (undocumented)
+    columnPixelSpacing?: number;
+    rowPixelSpacing?: number;
+    scale?: number;
+    sequenceOfUltrasoundRegions?: Record<string, unknown>[];
+    tooltip?: string;
+    type: CalibrationTypes;
+}
+
+// @public
 interface IImageData {
+    // (undocumented)
+    calibration?: IImageCalibration;
     dimensions: Point3;
     direction: Mat3;
     hasPixelSpacing?: boolean;
@@ -2529,14 +2561,14 @@ interface IImageVolume {
     imageData?: vtkImageData;
     imageIds: Array<string>;
     isDynamicVolume(): boolean;
-    isPrescaled: boolean;
+    isPreScaled: boolean;
     loadStatus?: Record<string, any>;
     metadata: Metadata;
     numVoxels: number;
     origin: Point3;
     referencedVolumeId?: string;
     scaling?: {
-        PET?: {
+        PT?: {
             SUVlbmFactor?: number;
             SUVbsaFactor?: number;
             suvbwToSuvlbm?: number;
@@ -2676,6 +2708,7 @@ type ImageRenderedEventDetail = {
     viewportId: string;
     renderingEngineId: string;
     suppressEvents?: boolean;
+    viewportStatus: ViewportStatus;
 };
 
 // @public (undocumented)
@@ -2694,10 +2727,19 @@ type ImageSpacingCalibratedEventDetail = {
     viewportId: string;
     renderingEngineId: string;
     imageId: string;
-    rowScale: number;
-    columnScale: number;
+    calibration: IImageCalibration;
     imageData: vtkImageData;
     worldToIndex: mat4;
+};
+
+// @public
+type ImageVolumeLoadingCompletedEvent =
+CustomEvent_2<ImageVolumeLoadingCompletedEventDetail>;
+
+// @public
+type ImageVolumeLoadingCompletedEventDetail = {
+    volumeId: string;
+    FrameOfReferenceUID: string;
 };
 
 // @public
@@ -2790,7 +2832,7 @@ interface IRenderingEngine {
     // (undocumented)
     renderViewports(viewportIds: Array<string>): void;
     // (undocumented)
-    resize(immediate?: boolean, resetPan?: boolean, resetZoom?: boolean): void;
+    resize(immediate?: boolean, keepCamera?: boolean): void;
     // (undocumented)
     setViewports(viewports: Array<PublicViewportInput>): void;
 }
@@ -2913,6 +2955,10 @@ interface IToolGroup {
         (): undefined | string;
     };
     // (undocumented)
+    getDefaultMousePrimary: {
+        (): MouseBindings;
+    };
+    // (undocumented)
     getToolConfiguration: {
         (toolName: string, configurationPath: string): any;
     };
@@ -3020,6 +3066,7 @@ interface IViewport {
     );
     setOptions(options: ViewportInputOptions, immediate: boolean): void;
     setPan(pan: Point2, storeAsInitialCamera?: boolean);
+    setRendered(): void;
     setZoom(zoom: number, storeAsInitialCamera?: boolean);
     sHeight: number;
     suppressEvents: boolean;
@@ -3029,6 +3076,7 @@ interface IViewport {
     type: ViewportType;
     // (undocumented)
     updateRenderingPipeline: () => void;
+    viewportStatus: ViewportStatus;
     worldToCanvas: (worldPos: Point3) => Point2;
 }
 
@@ -3050,7 +3098,7 @@ interface IVolume {
     referencedVolumeId?: string;
     scalarData: VolumeScalarData | Array<VolumeScalarData>;
     scaling?: {
-        PET?: {
+        PT?: {
             // @TODO: Do these values exist?
             SUVlbmFactor?: number;
             SUVbsaFactor?: number;
@@ -3652,13 +3700,13 @@ export class PlanarFreehandROITool extends AnnotationTool {
     // (undocumented)
     addNewAnnotation: (evt: EventTypes_2.InteractionEventType) => PlanarFreehandROIAnnotation;
     // (undocumented)
-    _calculateCachedStats: (annotation: any, viewport: any, renderingEngine: any, enabledElement: any) => any;
+    _calculateCachedStats: (annotation: any, viewport: any, renderingEngine: any, enabledElement: any, modalityUnitOptions: ModalityUnitOptions) => any;
     // (undocumented)
     cancel: (element: HTMLDivElement) => void;
     // (undocumented)
     filterInteractableAnnotationsForElement(element: HTMLDivElement, annotations: Annotations): Annotations | undefined;
     // (undocumented)
-    _getTextLines: (data: any, targetId: string, isPreScaled: boolean, isSuvScaled: boolean) => string[];
+    _getTextLines: (data: any, targetId: string) => string[];
     // (undocumented)
     handleSelectedCallback: (evt: EventTypes_2.InteractionEventType, annotation: PlanarFreehandROIAnnotation, handle: ToolHandle) => void;
     // (undocumented)
@@ -3804,7 +3852,7 @@ export class ProbeTool extends AnnotationTool {
     // (undocumented)
     addNewAnnotation: (evt: EventTypes_2.InteractionEventType) => ProbeAnnotation;
     // (undocumented)
-    _calculateCachedStats(annotation: any, renderingEngine: any, enabledElement: any): any;
+    _calculateCachedStats(annotation: any, renderingEngine: any, enabledElement: any, modalityUnitOptions: ModalityUnitOptions): any;
     // (undocumented)
     cancel: (element: HTMLDivElement) => any;
     // (undocumented)
@@ -3827,9 +3875,7 @@ export class ProbeTool extends AnnotationTool {
     // (undocumented)
     getHandleNearImagePoint(element: HTMLDivElement, annotation: ProbeAnnotation, canvasCoords: Types_2.Point2, proximity: number): ToolHandle | undefined;
     // (undocumented)
-    _getTextLines(data: any, targetId: string, isPreScaled: boolean, isSuvScaled: boolean): string[] | undefined;
-    // (undocumented)
-    _getValueForModality(value: any, imageVolume: any, modality: any): {};
+    _getTextLines(data: any, targetId: string): string[] | undefined;
     // (undocumented)
     handleSelectedCallback(evt: EventTypes_2.InteractionEventType, annotation: ProbeAnnotation): void;
     // (undocumented)
@@ -4090,7 +4136,7 @@ export class RectangleROITool extends AnnotationTool {
     // (undocumented)
     addNewAnnotation: (evt: EventTypes_2.InteractionEventType) => RectangleROIAnnotation;
     // (undocumented)
-    _calculateCachedStats: (annotation: any, viewPlaneNormal: any, viewUp: any, renderingEngine: any, enabledElement: any) => any;
+    _calculateCachedStats: (annotation: any, viewPlaneNormal: any, viewUp: any, renderingEngine: any, enabledElement: any, modalityUnitOptions: any) => any;
     // (undocumented)
     cancel: (element: HTMLDivElement) => any;
     // (undocumented)
@@ -4118,7 +4164,7 @@ export class RectangleROITool extends AnnotationTool {
         height: number;
     };
     // (undocumented)
-    _getTextLines: (data: any, targetId: string, isPreScaled: boolean, isSuvScaled: boolean) => string[] | undefined;
+    _getTextLines: (data: any, targetId: string) => string[] | undefined;
     // (undocumented)
     handleSelectedCallback: (evt: EventTypes_2.InteractionEventType, annotation: RectangleROIAnnotation, handle: ToolHandle) => void;
     // (undocumented)
@@ -4335,6 +4381,9 @@ function resetElementCursor(element: HTMLDivElement): void;
 type RGB = [number, number, number];
 
 // @public (undocumented)
+function roundNumber(value: string | number, precision?: number): string;
+
+// @public (undocumented)
 interface ScaleOverlayAnnotation extends Annotation {
     // (undocumented)
     data: {
@@ -4402,7 +4451,7 @@ export class ScaleOverlayTool extends AnnotationDisplayTool {
 
 // @public (undocumented)
 type Scaling = {
-    PET?: PTScaling;
+    PT?: PTScaling;
 };
 
 // @public (undocumented)
@@ -5348,7 +5397,8 @@ declare namespace utilities {
         rectangleROITool,
         planarFreehandROITool,
         stackPrefetch,
-        scroll_2 as scroll
+        scroll_2 as scroll,
+        roundNumber
     }
 }
 export { utilities }
@@ -5451,6 +5501,7 @@ type VoiModifiedEventDetail = {
     volumeId?: string;
     VOILUTFunction?: VOILUTFunctionType;
     invert?: boolean;
+    invertStateChanged?: boolean;
 };
 
 // @public (undocumented)

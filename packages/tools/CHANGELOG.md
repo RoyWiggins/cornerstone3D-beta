@@ -3,6 +3,152 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.7.0](https://github.com/cornerstonejs/cornerstone3D/compare/v1.6.0...v1.7.0) (2023-07-26)
+
+**Note:** Version bump only for package @cornerstonejs/tools
+
+# [1.6.0](https://github.com/cornerstonejs/cornerstone3D/compare/v1.5.0...v1.6.0) (2023-07-21)
+
+### Features
+
+- **calibration:** Add calibration type labels (ERMF, PROJ, USER) ([#638](https://github.com/cornerstonejs/cornerstone3D/issues/638)) ([0aafbc2](https://github.com/cornerstonejs/cornerstone3D/commit/0aafbc2be6f50f4733792b7eb924863ec3200f23))
+
+# [1.5.0](https://github.com/cornerstonejs/cornerstone3D/compare/v1.4.6...v1.5.0) (2023-07-18)
+
+**Note:** Version bump only for package @cornerstonejs/tools
+
+## [1.4.6](https://github.com/cornerstonejs/cornerstone3D/compare/v1.4.5...v1.4.6) (2023-07-14)
+
+**Note:** Version bump only for package @cornerstonejs/tools
+
+## [1.4.5](https://github.com/cornerstonejs/cornerstone3D/compare/v1.4.4...v1.4.5) (2023-07-14)
+
+**Note:** Version bump only for package @cornerstonejs/tools
+
+## [1.4.4](https://github.com/cornerstonejs/cornerstone3D/compare/v1.4.3...v1.4.4) (2023-07-13)
+
+### Bug Fixes
+
+- **PT measurement units:** Non-SUV scaled, but pre-scaled PTs should show proper units ([#686](https://github.com/cornerstonejs/cornerstone3D/issues/686)) ([e9190df](https://github.com/cornerstonejs/cornerstone3D/commit/e9190df44b29be504b46ebb768e6ad2e6b02bbe3))
+
+## [1.4.3](https://github.com/cornerstonejs/cornerstone3D/compare/v1.4.2...v1.4.3) (2023-07-12)
+
+### Bug Fixes
+
+- **ptct:** Jump to click and voisync for volume3d ([#678](https://github.com/cornerstonejs/cornerstone3D/issues/678)) ([8342ff4](https://github.com/cornerstonejs/cornerstone3D/commit/8342ff4e665b9dc1c09af0ca2eddd607d3b1c3a3))
+
+## [1.4.2](https://github.com/cornerstonejs/cornerstone3D/compare/v1.4.1...v1.4.2) (2023-07-11)
+
+**Note:** Version bump only for package @cornerstonejs/tools
+
+## [1.4.1](https://github.com/cornerstonejs/cornerstone3D/compare/v1.4.0...v1.4.1) (2023-07-04)
+
+### Bug Fixes
+
+- **PET vs PT:** Change all to PT for consistency ([#676](https://github.com/cornerstonejs/cornerstone3D/issues/676)) ([813e5ba](https://github.com/cornerstonejs/cornerstone3D/commit/813e5bac8a615b53cab3640052ce5d9bb7dabc5b))
+
+# [1.4.0](https://github.com/cornerstonejs/cornerstone3D/compare/v1.3.0...v1.4.0) (2023-07-04)
+
+**Note:** Version bump only for package @cornerstonejs/tools
+
+# [1.3.0](https://github.com/cornerstonejs/cornerstone3D/compare/v1.2.9...v1.3.0) (2023-07-04)
+
+### Features
+
+- **invertSync:** add invert sync to voi sync ([#677](https://github.com/cornerstonejs/cornerstone3D/issues/677)) ([a1dcfbc](https://github.com/cornerstonejs/cornerstone3D/commit/a1dcfbc986a483d650cd2abfdd8f1bba1e3d829a))
+
+## [1.2.9](https://github.com/cornerstonejs/cornerstone3D/compare/v1.2.8...v1.2.9) (2023-07-03)
+
+**Note:** Version bump only for package @cornerstonejs/tools
+
+## [1.2.8](https://github.com/cornerstonejs/cornerstone3D/compare/v1.2.7...v1.2.8) (2023-06-27)
+
+**Note:** Version bump only for package @cornerstonejs/tools
+
+## [1.2.7](https://github.com/cornerstonejs/cornerstone3D/compare/v1.2.6...v1.2.7) (2023-06-20)
+
+### Bug Fixes
+
+- **PlanarFreehandROITool:** trigger event after recalculation of stats ([#665](https://github.com/cornerstonejs/cornerstone3D/issues/665)) ([5a63104](https://github.com/cornerstonejs/cornerstone3D/commit/5a63104cca936b6104b7a7a87409e40363017f9e))
+
+## [1.2.6](https://github.com/cornerstonejs/cornerstone3D/compare/v1.2.5...v1.2.6) (2023-06-14)
+
+**Note:** Version bump only for package @cornerstonejs/tools
+
+## [1.2.5](https://github.com/cornerstonejs/cornerstone3D/compare/v1.2.4...v1.2.5) (2023-06-14)
+
+### Bug Fixes
+
+- **PlanarFreehandROITool:** recalculate stats upon edit ([#607](https://github.com/cornerstonejs/cornerstone3D/issues/607)) ([f193701](https://github.com/cornerstonejs/cornerstone3D/commit/f1937010c982d57aec93e66a2e3e308f851eceec))
+
+## [1.2.4](https://github.com/cornerstonejs/cornerstone3D/compare/v1.2.3...v1.2.4) (2023-06-13)
+
+**Note:** Version bump only for package @cornerstonejs/tools
+
+## [1.2.3](https://github.com/cornerstonejs/cornerstone3D/compare/v1.2.2...v1.2.3) (2023-06-13)
+
+**Note:** Version bump only for package @cornerstonejs/tools
+
+## [1.2.2](https://github.com/cornerstonejs/cornerstone3D/compare/v1.2.1...v1.2.2) (2023-06-13)
+
+### Bug Fixes
+
+- **colormap:** adding new Method to set the opacity of the colormap ([#649](https://github.com/cornerstonejs/cornerstone3D/issues/649)) ([d7e5430](https://github.com/cornerstonejs/cornerstone3D/commit/d7e54301e6e4e7cde6b3a087543b772943884bfa))
+
+## [1.2.1](https://github.com/cornerstonejs/cornerstone3D/compare/v1.2.0...v1.2.1) (2023-06-13)
+
+**Note:** Version bump only for package @cornerstonejs/tools
+
+# [1.2.0](https://github.com/cornerstonejs/cornerstone3D/compare/v1.1.9...v1.2.0) (2023-06-12)
+
+### Features
+
+- **agnleTool:** link textbox to vertex unless moved by user ([#651](https://github.com/cornerstonejs/cornerstone3D/issues/651)) ([d77dff3](https://github.com/cornerstonejs/cornerstone3D/commit/d77dff3c339d46db52a2868feaf12501838e9b96))
+
+## [1.1.9](https://github.com/cornerstonejs/cornerstone3D/compare/v1.1.8...v1.1.9) (2023-06-12)
+
+### Bug Fixes
+
+- **mipJump:** MIP jump to image click ([#645](https://github.com/cornerstonejs/cornerstone3D/issues/645)) ([d81d583](https://github.com/cornerstonejs/cornerstone3D/commit/d81d583d645e69c5d52d4d03a713c0c43d33867f))
+
+## [1.1.8](https://github.com/cornerstonejs/cornerstone3D/compare/v1.1.7...v1.1.8) (2023-06-09)
+
+**Note:** Version bump only for package @cornerstonejs/tools
+
+## [1.1.7](https://github.com/cornerstonejs/cornerstone3D/compare/v1.1.6...v1.1.7) (2023-06-09)
+
+**Note:** Version bump only for package @cornerstonejs/tools
+
+## [1.1.6](https://github.com/cornerstonejs/cornerstone3D-beta/compare/v1.1.5...v1.1.6) (2023-06-01)
+
+### Bug Fixes
+
+- **Cobb Angle:** use the two closest line segment points as the tail of each respectful vector ([#634](https://github.com/cornerstonejs/cornerstone3D-beta/issues/634)) ([8311de3](https://github.com/cornerstonejs/cornerstone3D-beta/commit/8311de3baf4f1f759406a3cac3fe0077d818bdbb))
+
+## [1.1.5](https://github.com/cornerstonejs/cornerstone3D-beta/compare/v1.1.4...v1.1.5) (2023-05-23)
+
+### Bug Fixes
+
+- **event:** Interactions between double click and multi mouse button ([#616](https://github.com/cornerstonejs/cornerstone3D-beta/issues/616)) ([3be68c1](https://github.com/cornerstonejs/cornerstone3D-beta/commit/3be68c166ade016793ae8d8c6dbe7bd15dfd07ac))
+
+## [1.1.4](https://github.com/cornerstonejs/cornerstone3D-beta/compare/v1.1.3...v1.1.4) (2023-05-23)
+
+**Note:** Version bump only for package @cornerstonejs/tools
+
+## [1.1.3](https://github.com/cornerstonejs/cornerstone3D-beta/compare/v1.1.2...v1.1.3) (2023-05-23)
+
+### Bug Fixes
+
+- **expose:** api default mouse primary ([#622](https://github.com/cornerstonejs/cornerstone3D-beta/issues/622)) ([94be45b](https://github.com/cornerstonejs/cornerstone3D-beta/commit/94be45b501c57435f1a451517200624e32187a02))
+
+## [1.1.2](https://github.com/cornerstonejs/cornerstone3D-beta/compare/v1.1.1...v1.1.2) (2023-05-23)
+
+**Note:** Version bump only for package @cornerstonejs/tools
+
+## [1.1.1](https://github.com/cornerstonejs/cornerstone3D-beta/compare/v1.1.0...v1.1.1) (2023-05-23)
+
+**Note:** Version bump only for package @cornerstonejs/tools
+
 # [1.1.0](https://github.com/cornerstonejs/cornerstone3D-beta/compare/v0.103.0...v1.1.0) (2023-05-22)
 
 **Note:** Version bump only for package @cornerstonejs/tools
