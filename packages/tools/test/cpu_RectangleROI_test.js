@@ -1,6 +1,7 @@
 import * as cornerstone3D from '@cornerstonejs/core';
 import * as csTools3d from '../src/index';
 import * as testUtils from '../../../utils/test/testUtils';
+import { performMouseDownAndUp } from '../../../utils/test/testUtilsMouseEvents';
 
 const {
   cache,
@@ -123,8 +124,8 @@ describe('RectangleROITool (CPU):', () => {
     const addEventListenerForAnnotationRendered = () => {
       element.addEventListener(csToolsEvents.ANNOTATION_RENDERED, () => {
         const rectangleAnnotations = annotation.state.getAnnotations(
-          element,
-          RectangleROITool.toolName
+          RectangleROITool.toolName,
+          element
         );
         // Can successfully add rectangleROI to annotationManager
         expect(rectangleAnnotations).toBeDefined();
@@ -145,10 +146,7 @@ describe('RectangleROITool (CPU):', () => {
         // the rectangle is drawn on the strip
         expect(data[targets[0]].mean).toBe(255);
 
-        annotation.state.removeAnnotation(
-          rectangleAnnotation.annotationUID,
-          element
-        );
+        annotation.state.removeAnnotation(rectangleAnnotation.annotationUID);
         done();
       });
     };
@@ -229,8 +227,8 @@ describe('RectangleROITool (CPU):', () => {
     const addEventListenerForAnnotationRendered = () => {
       element.addEventListener(csToolsEvents.ANNOTATION_RENDERED, () => {
         const rectangleAnnotations = annotation.state.getAnnotations(
-          element,
-          RectangleROITool.toolName
+          RectangleROITool.toolName,
+          element
         );
         // Can successfully add rectangleROI to annotationManager
         expect(rectangleAnnotations).toBeDefined();
@@ -250,10 +248,7 @@ describe('RectangleROITool (CPU):', () => {
         expect(data[targets[0]].mean).toBe(255);
         expect(data[targets[0]].stdDev).toBe(0);
 
-        annotation.state.removeAnnotation(
-          rectangleAnnotation.annotationUID,
-          element
-        );
+        annotation.state.removeAnnotation(rectangleAnnotation.annotationUID);
         done();
       });
     };
@@ -369,8 +364,8 @@ describe('RectangleROITool (CPU):', () => {
     const addEventListenerForAnnotationRendered = () => {
       element.addEventListener(csToolsEvents.ANNOTATION_RENDERED, () => {
         const rectangleAnnotations = annotation.state.getAnnotations(
-          element,
-          RectangleROITool.toolName
+          RectangleROITool.toolName,
+          element
         );
         // Can successfully add rectangleROI to annotationManager
         expect(rectangleAnnotations).toBeDefined();
@@ -390,10 +385,7 @@ describe('RectangleROITool (CPU):', () => {
         expect(data[targets[0]].mean).toBe(255);
         expect(data[targets[0]].stdDev).toBe(0);
 
-        annotation.state.removeAnnotation(
-          rectangleAnnotation.annotationUID,
-          element
-        );
+        annotation.state.removeAnnotation(rectangleAnnotation.annotationUID);
         done();
       });
     };
@@ -458,7 +450,7 @@ describe('RectangleROITool (CPU):', () => {
       document.dispatchEvent(evt);
 
       // Mouse down on the middle of the rectangleROI, just to select
-      evt = new MouseEvent('mousedown', {
+      const mouseDownEvt = new MouseEvent('mousedown', {
         target: element,
         buttons: 1,
         clientX: clientX3,
@@ -466,13 +458,16 @@ describe('RectangleROITool (CPU):', () => {
         pageX: pageX3,
         pageY: pageY3,
       });
-      element.dispatchEvent(evt);
 
-      // Just grab and don't really move it
-      evt = new MouseEvent('mouseup');
+      // Mouse Up instantly after
+      const mouseUpEvt = new MouseEvent('mouseup');
 
-      addEventListenerForAnnotationRendered();
-      document.dispatchEvent(evt);
+      performMouseDownAndUp(
+        element,
+        mouseDownEvt,
+        mouseUpEvt,
+        addEventListenerForAnnotationRendered
+      );
     });
 
     this.stackToolGroup.addViewport(vp.id, this.renderingEngine.id);
@@ -502,8 +497,8 @@ describe('RectangleROITool (CPU):', () => {
     const addEventListenerForAnnotationRendered = () => {
       element.addEventListener(csToolsEvents.ANNOTATION_RENDERED, () => {
         const rectangleAnnotations = annotation.state.getAnnotations(
-          element,
-          RectangleROITool.toolName
+          RectangleROITool.toolName,
+          element
         );
         // Can successfully add rectangleROI to annotationManager
         expect(rectangleAnnotations).toBeDefined();
@@ -560,10 +555,7 @@ describe('RectangleROITool (CPU):', () => {
         expect(handles[0]).toEqual(afterMoveFirstHandle);
         expect(handles[3]).toEqual(afterMoveSecondHandle);
 
-        annotation.state.removeAnnotation(
-          rectangleAnnotation.annotationUID,
-          element
-        );
+        annotation.state.removeAnnotation(rectangleAnnotation.annotationUID);
         done();
       });
     };
@@ -814,8 +806,8 @@ describe('RectangleROITool (CPU):', () => {
 
       setTimeout(() => {
         const rectangleAnnotations = annotation.state.getAnnotations(
-          element,
-          RectangleROITool.toolName
+          RectangleROITool.toolName,
+          element
         );
         // Can successfully add rectangleROI to annotationManager
         expect(rectangleAnnotations).toBeDefined();
@@ -872,10 +864,7 @@ describe('RectangleROITool (CPU):', () => {
         expect(handles[0]).toEqual(afterMoveFirstHandle);
         expect(handles[3]).toEqual(afterMoveSecondHandle);
 
-        annotation.state.removeAnnotation(
-          rectangleAnnotation.annotationUID,
-          element
-        );
+        annotation.state.removeAnnotation(rectangleAnnotation.annotationUID);
         done();
       }, 100);
     };

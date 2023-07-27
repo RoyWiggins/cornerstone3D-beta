@@ -135,7 +135,7 @@ class RectangleROITool extends AnnotationTool {
    *
    */
   addNewAnnotation = (
-    evt: EventTypes.MouseDownActivateEventType
+    evt: EventTypes.InteractionEventType
   ): RectangleROIAnnotation => {
     const eventDetail = evt.detail;
     const { currentPoints, element } = eventDetail;
@@ -156,6 +156,8 @@ class RectangleROITool extends AnnotationTool {
       viewUp
     );
 
+    const FrameOfReferenceUID = viewport.getFrameOfReferenceUID();
+
     const annotation = {
       invalidated: true,
       highlighted: true,
@@ -163,7 +165,7 @@ class RectangleROITool extends AnnotationTool {
         toolName: this.getToolName(),
         viewPlaneNormal: <Types.Point3>[...viewPlaneNormal],
         viewUp: <Types.Point3>[...viewUp],
-        FrameOfReferenceUID: viewport.getFrameOfReferenceUID(),
+        FrameOfReferenceUID,
         referencedImageId,
       },
       data: {
@@ -191,7 +193,7 @@ class RectangleROITool extends AnnotationTool {
       },
     };
 
-    addAnnotation(element, annotation);
+    addAnnotation(annotation, element);
 
     const viewportIdsToRender = getViewportIdsWithToolToRender(
       element,
@@ -264,9 +266,8 @@ class RectangleROITool extends AnnotationTool {
   };
 
   toolSelectedCallback = (
-    evt: EventTypes.MouseDownEventType,
-    annotation: RectangleROIAnnotation,
-    interactionType: InteractionTypes
+    evt: EventTypes.InteractionEventType,
+    annotation: RectangleROIAnnotation
   ): void => {
     const eventDetail = evt.detail;
     const { element } = eventDetail;
@@ -297,10 +298,9 @@ class RectangleROITool extends AnnotationTool {
   };
 
   handleSelectedCallback = (
-    evt: EventTypes.MouseDownEventType,
+    evt: EventTypes.InteractionEventType,
     annotation: RectangleROIAnnotation,
-    handle: ToolHandle,
-    interactionType = 'mouse'
+    handle: ToolHandle
   ): void => {
     const eventDetail = evt.detail;
     const { element } = eventDetail;
@@ -341,9 +341,7 @@ class RectangleROITool extends AnnotationTool {
     evt.preventDefault();
   };
 
-  _mouseUpCallback = (
-    evt: EventTypes.MouseUpEventType | EventTypes.MouseClickEventType
-  ) => {
+  _endCallback = (evt: EventTypes.InteractionEventType): void => {
     const eventDetail = evt.detail;
     const { element } = eventDetail;
 
@@ -372,7 +370,7 @@ class RectangleROITool extends AnnotationTool {
       this.isHandleOutsideImage &&
       this.configuration.preventHandleOutsideImage
     ) {
-      removeAnnotation(annotation.annotationUID, element);
+      removeAnnotation(annotation.annotationUID);
     }
 
     triggerAnnotationRenderForViewportIds(renderingEngine, viewportIdsToRender);
@@ -388,9 +386,7 @@ class RectangleROITool extends AnnotationTool {
     }
   };
 
-  _mouseDragCallback = (
-    evt: EventTypes.MouseMoveEventType | EventTypes.MouseDragEventType
-  ) => {
+  _dragCallback = (evt: EventTypes.InteractionEventType): void => {
     this.isDrawing = true;
 
     const eventDetail = evt.detail;
@@ -543,13 +539,14 @@ class RectangleROITool extends AnnotationTool {
   _activateDraw = (element) => {
     state.isInteractingWithTool = true;
 
-    element.addEventListener(Events.MOUSE_UP, this._mouseUpCallback);
-    element.addEventListener(Events.MOUSE_DRAG, this._mouseDragCallback);
-    element.addEventListener(Events.MOUSE_MOVE, this._mouseDragCallback);
-    element.addEventListener(Events.MOUSE_CLICK, this._mouseUpCallback);
+    element.addEventListener(Events.MOUSE_UP, this._endCallback);
+    element.addEventListener(Events.MOUSE_DRAG, this._dragCallback);
+    element.addEventListener(Events.MOUSE_MOVE, this._dragCallback);
+    element.addEventListener(Events.MOUSE_CLICK, this._endCallback);
 
-    // element.addEventListener(Events.TOUCH_END, this._mouseUpCallback)
-    // element.addEventListener(Events.TOUCH_DRAG, this._mouseDragCallback)
+    element.addEventListener(Events.TOUCH_END, this._endCallback);
+    element.addEventListener(Events.TOUCH_DRAG, this._dragCallback);
+    element.addEventListener(Events.TOUCH_TAP, this._endCallback);
   };
 
   /**
@@ -558,13 +555,14 @@ class RectangleROITool extends AnnotationTool {
   _deactivateDraw = (element) => {
     state.isInteractingWithTool = false;
 
-    element.removeEventListener(Events.MOUSE_UP, this._mouseUpCallback);
-    element.removeEventListener(Events.MOUSE_DRAG, this._mouseDragCallback);
-    element.removeEventListener(Events.MOUSE_MOVE, this._mouseDragCallback);
-    element.removeEventListener(Events.MOUSE_CLICK, this._mouseUpCallback);
+    element.removeEventListener(Events.MOUSE_UP, this._endCallback);
+    element.removeEventListener(Events.MOUSE_DRAG, this._dragCallback);
+    element.removeEventListener(Events.MOUSE_MOVE, this._dragCallback);
+    element.removeEventListener(Events.MOUSE_CLICK, this._endCallback);
 
-    // element.removeEventListener(Events.TOUCH_END, this._mouseUpCallback)
-    // element.removeEventListener(Events.TOUCH_DRAG, this._mouseDragCallback)
+    element.removeEventListener(Events.TOUCH_END, this._endCallback);
+    element.removeEventListener(Events.TOUCH_DRAG, this._dragCallback);
+    element.removeEventListener(Events.TOUCH_TAP, this._endCallback);
   };
 
   /**
@@ -573,12 +571,13 @@ class RectangleROITool extends AnnotationTool {
   _activateModify = (element) => {
     state.isInteractingWithTool = true;
 
-    element.addEventListener(Events.MOUSE_UP, this._mouseUpCallback);
-    element.addEventListener(Events.MOUSE_DRAG, this._mouseDragCallback);
-    element.addEventListener(Events.MOUSE_CLICK, this._mouseUpCallback);
+    element.addEventListener(Events.MOUSE_UP, this._endCallback);
+    element.addEventListener(Events.MOUSE_DRAG, this._dragCallback);
+    element.addEventListener(Events.MOUSE_CLICK, this._endCallback);
 
-    // element.addEventListener(Events.TOUCH_END, this._mouseUpCallback)
-    // element.addEventListener(Events.TOUCH_DRAG, this._mouseDragCallback)
+    element.addEventListener(Events.TOUCH_END, this._endCallback);
+    element.addEventListener(Events.TOUCH_DRAG, this._dragCallback);
+    element.addEventListener(Events.TOUCH_TAP, this._endCallback);
   };
 
   /**
@@ -587,12 +586,13 @@ class RectangleROITool extends AnnotationTool {
   _deactivateModify = (element) => {
     state.isInteractingWithTool = false;
 
-    element.removeEventListener(Events.MOUSE_UP, this._mouseUpCallback);
-    element.removeEventListener(Events.MOUSE_DRAG, this._mouseDragCallback);
-    element.removeEventListener(Events.MOUSE_CLICK, this._mouseUpCallback);
+    element.removeEventListener(Events.MOUSE_UP, this._endCallback);
+    element.removeEventListener(Events.MOUSE_DRAG, this._dragCallback);
+    element.removeEventListener(Events.MOUSE_CLICK, this._endCallback);
 
-    // element.removeEventListener(Events.TOUCH_END, this._mouseUpCallback)
-    // element.removeEventListener(Events.TOUCH_DRAG, this._mouseDragCallback)
+    element.removeEventListener(Events.TOUCH_END, this._endCallback);
+    element.removeEventListener(Events.TOUCH_DRAG, this._dragCallback);
+    element.removeEventListener(Events.TOUCH_TAP, this._endCallback);
   };
 
   /**
@@ -611,7 +611,7 @@ class RectangleROITool extends AnnotationTool {
     const { viewport } = enabledElement;
     const { element } = viewport;
 
-    let annotations = getAnnotations(element, this.getToolName());
+    let annotations = getAnnotations(this.getToolName(), element);
 
     if (!annotations?.length) {
       return renderStatus;
@@ -653,7 +653,7 @@ class RectangleROITool extends AnnotationTool {
       // force to recalculate the stats from the points
       if (
         !data.cachedStats[targetId] ||
-        data.cachedStats[targetId].unit === undefined
+        data.cachedStats[targetId].areaUnit === undefined
       ) {
         data.cachedStats[targetId] = {
           Modality: null,
@@ -771,7 +771,18 @@ class RectangleROITool extends AnnotationTool {
 
       const isPreScaled = isViewportPreScaled(viewport, targetId);
 
-      const textLines = this._getTextLines(data, targetId, isPreScaled);
+      const isSuvScaled = this.isSuvScaled(
+        viewport,
+        targetId,
+        annotation.metadata.referencedImageId
+      );
+
+      const textLines = this._getTextLines(
+        data,
+        targetId,
+        isPreScaled,
+        isSuvScaled
+      );
       if (!textLines || textLines.length === 0) {
         continue;
       }
@@ -841,7 +852,8 @@ class RectangleROITool extends AnnotationTool {
   _getTextLines = (
     data,
     targetId: string,
-    isPreScaled: boolean
+    isPreScaled: boolean,
+    isSuvScaled: boolean
   ): string[] | undefined => {
     const cachedVolumeStats = data.cachedStats[targetId];
     const { area, mean, max, stdDev, Modality, areaUnit } = cachedVolumeStats;
@@ -851,7 +863,7 @@ class RectangleROITool extends AnnotationTool {
     }
 
     const textLines: string[] = [];
-    const unit = getModalityUnit(Modality, isPreScaled);
+    const unit = getModalityUnit(Modality, isPreScaled, isSuvScaled);
 
     textLines.push(`Area: ${area.toFixed(2)} ${areaUnit}\xb2`);
     textLines.push(`Mean: ${mean.toFixed(2)} ${unit}`);
@@ -900,8 +912,9 @@ class RectangleROITool extends AnnotationTool {
         continue;
       }
 
-      const { dimensions, scalarData, imageData, metadata, hasPixelSpacing } =
-        image;
+      const { dimensions, imageData, metadata, hasPixelSpacing } = image;
+      const scalarData =
+        'getScalarData' in image ? image.getScalarData() : image.scalarData;
 
       const worldPos1Index = transformWorldToIndex(imageData, worldPos1);
 
@@ -939,7 +952,7 @@ class RectangleROITool extends AnnotationTool {
           worldPos2
         );
 
-        const area = worldWidth * worldHeight;
+        const area = Math.abs(worldWidth * worldHeight);
 
         let count = 0;
         let mean = 0;

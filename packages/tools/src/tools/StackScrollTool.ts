@@ -15,9 +15,6 @@ import { PublicToolProps, ToolProps, EventTypes } from '../types';
 class StackScrollTool extends BaseTool {
   static toolName;
   deltaY: number;
-  touchDragCallback: (evt: EventTypes.MouseDragEventType) => void;
-  mouseDragCallback: (evt: EventTypes.MouseDragEventType) => void;
-
   constructor(
     toolProps: PublicToolProps = {},
     defaultToolProps: ToolProps = {
@@ -25,23 +22,27 @@ class StackScrollTool extends BaseTool {
       configuration: {
         invert: false,
         debounceIfNotLoaded: true,
-        loopScroll: false
+        loop: false,
       },
     }
   ) {
     super(toolProps, defaultToolProps);
     this.deltaY = 1;
-
-    this.touchDragCallback = this._dragCallback.bind(this);
-    this.mouseDragCallback = this._dragCallback.bind(this);
   }
 
-  _dragCallback(evt: EventTypes.MouseDragEventType) {
+  mouseDragCallback(evt: EventTypes.InteractionEventType) {
+    this._dragCallback(evt);
+  }
+  touchDragCallback(evt: EventTypes.InteractionEventType) {
+    this._dragCallback(evt);
+  }
+
+  _dragCallback(evt: EventTypes.InteractionEventType) {
     const { deltaPoints, viewportId, renderingEngineId } = evt.detail;
     const { viewport } = getEnabledElementByIds(viewportId, renderingEngineId);
 
     const targetId = this.getTargetId(viewport);
-    const { debounceIfNotLoaded, invert, loopScroll } = this.configuration;
+    const { debounceIfNotLoaded, invert, loop } = this.configuration;
 
     const deltaPointY = deltaPoints.canvas[1];
 
@@ -64,7 +65,7 @@ class StackScrollTool extends BaseTool {
         delta: invert ? -imageIdIndexOffset : imageIdIndexOffset,
         volumeId,
         debounceLoading: debounceIfNotLoaded,
-        loopScroll
+        loop: loop,
       });
 
       this.deltaY = deltaY % pixelsPerImage;

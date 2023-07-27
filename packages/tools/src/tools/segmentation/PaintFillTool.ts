@@ -17,6 +17,7 @@ import {
 import floodFill from '../../utilities/segmentation/floodFill';
 import { getSegmentation } from '../../stateManagement/segmentation/segmentationState';
 import { FloodFillResult, FloodFillGetter } from '../../types';
+import { LabelmapSegmentationData } from '../../types/LabelmapTypes';
 
 const { transformWorldToIndex, isEqual } = csUtils;
 
@@ -55,9 +56,7 @@ class PaintFillTool extends BaseTool {
    * @returns The annotation object.
    *
    */
-  preMouseDownCallback = (
-    evt: EventTypes.MouseDownActivateEventType
-  ): boolean => {
+  preMouseDownCallback = (evt: EventTypes.InteractionEventType): boolean => {
     const eventDetail = evt.detail;
     const { currentPoints, element } = eventDetail;
     const worldPos = currentPoints.world;
@@ -84,9 +83,10 @@ class PaintFillTool extends BaseTool {
       segmentLocking.getLockedSegments(segmentationId);
     const { representationData } = getSegmentation(segmentationId);
 
-    const { volumeId } = representationData[type];
+    const { volumeId } = representationData[type] as LabelmapSegmentationData;
     const segmentation = cache.getVolume(volumeId);
-    const { scalarData, dimensions, direction } = segmentation;
+    const { dimensions, direction } = segmentation;
+    const scalarData = segmentation.getScalarData();
 
     const index = transformWorldToIndex(segmentation.imageData, worldPos);
 
@@ -183,7 +183,7 @@ class PaintFillTool extends BaseTool {
   };
 
   private generateHelpers = (
-    scalarData: Float32Array | Uint8Array,
+    scalarData: Float32Array | Uint8Array | Uint16Array | Int16Array,
     dimensions: Types.Point3,
     seedIndex3D: Types.Point3,
     fixedDimension = 2

@@ -6,10 +6,12 @@ import {
   getRenderingEngines,
   getEnabledElementByIds,
   Settings,
+  utilities as csUtils,
 } from '@cornerstonejs/core';
 import type { Types } from '@cornerstonejs/core';
 import { state } from '../index';
 import {
+  IToolBinding,
   IToolClassReference,
   IToolGroup,
   SetToolBindingsType,
@@ -18,7 +20,6 @@ import {
 
 import { MouseCursor, SVGMouseCursor } from '../../cursors';
 import { initElementCursor } from '../../cursors/elementCursor';
-import deepmerge from '../../utilities/deepMerge';
 
 const { Active, Passive, Enabled, Disabled } = ToolModes;
 
@@ -98,7 +99,9 @@ export default class ToolGroup implements IToolGroup {
     }
 
     if (!toolDefinition) {
-      console.warn(`'${toolName}' is not registered with the library.`);
+      console.warn(
+        `'${toolName}' is not registered with the library. You need to use cornerstoneTools.addTool to register it.`
+      );
       return;
     }
 
@@ -314,7 +317,7 @@ export default class ToolGroup implements IToolGroup {
       return;
     }
 
-    const prevBindings = this.toolOptions[toolName]
+    const prevBindings: IToolBinding[] = this.toolOptions[toolName]
       ? this.toolOptions[toolName].bindings
       : [];
 
@@ -323,11 +326,16 @@ export default class ToolGroup implements IToolGroup {
       : [];
 
     // combine the new bindings with the previous bindings to avoid duplicates
+    // it allows duplicated mouse buttons as long as they don't have same
+    // modifier keys.
     const bindingsToUse = [...prevBindings, ...newBindings].reduce(
       (unique, binding) => {
+        const TouchBinding = binding.numTouchPoints !== undefined;
+        const MouseBinding = binding.mouseButton !== undefined;
+
         if (
-          !unique.some((obj) => obj.mouseButton === binding.mouseButton) &&
-          binding.mouseButton !== undefined
+          !unique.some((obj) => hasSameBinding(obj, binding)) &&
+          (TouchBinding || MouseBinding)
         ) {
           unique.push(binding);
         }
@@ -385,7 +393,7 @@ export default class ToolGroup implements IToolGroup {
       return;
     }
 
-    // Wwe should only remove the primary button bindings and keep
+    // We should only remove the primary button bindings and keep
     // the other ones (Zoom on right click)
     const prevToolOptions = this.getToolOptions(toolName);
     const toolOptions = Object.assign(
@@ -398,9 +406,10 @@ export default class ToolGroup implements IToolGroup {
       }
     );
 
-    // Remove the primary button bindings if they exist
+    // Remove the primary button bindings without modifiers, if they exist
     toolOptions.bindings = toolOptions.bindings.filter(
-      (binding) => binding.mouseButton !== MouseBindings.Primary
+      (binding) =>
+        binding.mouseButton !== MouseBindings.Primary || binding.modifierKey
     );
 
     // If there are other bindings, set the tool to be active
@@ -598,7 +607,7 @@ export default class ToolGroup implements IToolGroup {
     if (overwrite) {
       _configuration = configuration;
     } else {
-      _configuration = deepmerge(
+      _configuration = csUtils.deepMerge(
         this._toolInstances[toolName].configuration,
         configuration
       );
@@ -656,4 +665,15 @@ export default class ToolGroup implements IToolGroup {
       getRenderingEngine(renderingEngineId).renderViewport(viewportId);
     });
   }
+}
+
+function hasSameBinding(
+  binding1: IToolBinding,
+  binding2: IToolBinding
+): boolean {
+  if (binding1.mouseButton !== binding2.mouseButton) {
+    return false;
+  }
+
+  return binding1.modifierKey === binding2.modifierKey;
 }

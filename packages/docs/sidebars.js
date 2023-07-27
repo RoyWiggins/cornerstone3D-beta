@@ -76,6 +76,7 @@ module.exports = {
             'concepts/cornerstone-core/metadataProvider',
             'concepts/cornerstone-core/volumes',
             'concepts/cornerstone-core/volumeLoader',
+            'concepts/cornerstone-core/geometryLoader',
             'concepts/cornerstone-core/cache',
             'concepts/cornerstone-core/viewports',
             'concepts/cornerstone-core/renderingEngine',
@@ -111,6 +112,7 @@ module.exports = {
               },
               items: [
                 'concepts/cornerstone-tools/annotation/state',
+                'concepts/cornerstone-tools/annotation/annotationManager',
                 'concepts/cornerstone-tools/annotation/selection',
                 'concepts/cornerstone-tools/annotation/locking',
                 'concepts/cornerstone-tools/annotation/config',
@@ -132,6 +134,7 @@ module.exports = {
                 'concepts/cornerstone-tools/segmentation/config',
                 'concepts/cornerstone-tools/segmentation/segment-index',
                 'concepts/cornerstone-tools/segmentation/segmentation-tools',
+                'concepts/cornerstone-tools/segmentation/segmentation-contour',
               ],
             },
           ],

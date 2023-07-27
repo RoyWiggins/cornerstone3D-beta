@@ -2,7 +2,7 @@ import vtkVolume from '@kitware/vtk.js/Rendering/Core/Volume';
 
 import { VolumeActor } from './../../types/IActor';
 import { VoiModifiedEventDetail } from './../../types/EventTypes';
-import { loadVolume } from '../../volumeLoader';
+import { loadVolume } from '../../loaders/volumeLoader';
 import createVolumeMapper from './createVolumeMapper';
 import BlendModes from '../../enums/BlendModes';
 import { triggerEvent } from '../../utilities';
@@ -33,7 +33,8 @@ async function createVolumeActor(
   props: createVolumeActorInterface,
   element: HTMLDivElement,
   viewportId: string,
-  suppressEvents = false
+  suppressEvents = false,
+  use16BitTexture = false
 ): Promise<VolumeActor> {
   const { volumeId, callback, blendMode } = props;
 
@@ -61,7 +62,7 @@ async function createVolumeActor(
   // types of volumes which might not be composed of imageIds would be e.g., nrrd, nifti
   // format volumes
   if (imageVolume.imageIds) {
-    await setDefaultVolumeVOI(volumeActor, imageVolume);
+    await setDefaultVolumeVOI(volumeActor, imageVolume, use16BitTexture);
   }
 
   if (callback) {
@@ -84,7 +85,6 @@ function triggerVOIModified(
   const voiRange = volumeActor
     .getProperty()
     .getRGBTransferFunction(0)
-    // @ts-ignore: vtk d ts problem
     .getRange();
 
   const voiModifiedEventDetail: VoiModifiedEventDetail = {

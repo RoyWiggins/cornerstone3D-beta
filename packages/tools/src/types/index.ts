@@ -1,12 +1,14 @@
 import type {
   Annotation,
   Annotations,
-  FrameOfReferenceSpecificAnnotations,
   AnnotationState,
+  GroupSpecificAnnotations,
 } from './AnnotationTypes';
 import type * as EventTypes from './EventTypes';
 import type * as LabelmapTypes from './LabelmapTypes';
 import type IPoints from './IPoints';
+import type ITouchPoints from './ITouchPoints';
+import type IDistance from './IDistance';
 import type PlanarBoundingBox from './PlanarBoundingBox';
 import type {
   SetToolBindingsType,
@@ -34,6 +36,7 @@ import type {
   SegmentationRepresentationData,
   Segmentation,
   ToolGroupSpecificRepresentationState,
+  ToolGroupSpecificContourRepresentation,
   ToolGroupSpecificLabelmapRepresentation,
   ToolGroupSpecificRepresentation,
   SegmentationState,
@@ -46,16 +49,21 @@ import {
   FloodFillResult,
 } from './FloodFillTypes';
 import IToolClassReference from './IToolClassReference';
+import { ContourSegmentationData } from './ContourTypes';
+import IAnnotationManager from './IAnnotationManager';
+import AnnotationGroupSelector from './AnnotationGroupSelector';
 
 export type {
   // AnnotationState
   Annotation,
   Annotations,
-  FrameOfReferenceSpecificAnnotations,
+  IAnnotationManager,
+  GroupSpecificAnnotations,
   AnnotationState,
   AnnotationStyle,
   ToolSpecificAnnotationTypes,
   JumpToSliceOptions,
+  AnnotationGroupSelector,
   // Geometry
   PlanarBoundingBox,
   ToolProps,
@@ -63,6 +71,8 @@ export type {
   // Event data
   EventTypes,
   IPoints,
+  ITouchPoints,
+  IDistance,
   // ToolBindings
   IToolBinding,
   SetToolBindingsType,
@@ -82,6 +92,7 @@ export type {
   SegmentationRepresentationConfig,
   RepresentationConfig,
   ToolGroupSpecificRepresentationState,
+  ToolGroupSpecificContourRepresentation,
   ToolGroupSpecificLabelmapRepresentation,
   ToolGroupSpecificRepresentation,
   RepresentationPublicInput,
@@ -101,4 +112,6 @@ export type {
   FloodFillResult,
   FloodFillGetter,
   FloodFillOptions,
+  // Contour
+  ContourSegmentationData,
 };

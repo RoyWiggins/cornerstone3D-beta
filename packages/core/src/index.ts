@@ -9,6 +9,7 @@ import {
 } from './RenderingEngine';
 import RenderingEngine from './RenderingEngine';
 import VolumeViewport from './RenderingEngine/VolumeViewport';
+import VolumeViewport3D from './RenderingEngine/VolumeViewport3D';
 import BaseVolumeViewport from './RenderingEngine/BaseVolumeViewport';
 import StackViewport from './RenderingEngine/StackViewport';
 import Viewport from './RenderingEngine/Viewport';
@@ -29,20 +30,27 @@ import * as metaData from './metaData';
 import {
   init,
   getShouldUseCPURendering,
+  getShouldUseSharedArrayBuffer,
   isCornerstoneInitialized,
   setUseCPURendering,
+  setPreferSizeOverAccuracy,
+  setUseSharedArrayBuffer,
   resetUseCPURendering,
+  resetUseSharedArrayBuffer,
+  getConfiguration,
+  setConfiguration,
 } from './init';
 
 // Classes
 import Settings from './Settings';
 
 // Namespaces
-import * as volumeLoader from './volumeLoader';
-import * as imageLoader from './imageLoader';
+import * as volumeLoader from './loaders/volumeLoader';
+import * as imageLoader from './loaders/imageLoader';
+import * as geometryLoader from './loaders/geometryLoader';
 import * as Types from './types';
 import * as utilities from './utilities';
-import { registerImageLoader } from './imageLoader'; // since it is used by CSWIL right now
+import { registerImageLoader } from './loaders/imageLoader'; // since it is used by CSWIL right now
 
 import triggerEvent from './utilities/triggerEvent';
 
@@ -54,17 +62,22 @@ import {
 export type { Types };
 
 export {
+  // init
   init,
   isCornerstoneInitialized,
+  // configs
+  getConfiguration,
+  setConfiguration,
   // enums
   Enums,
   CONSTANTS,
-  Events as EVENTS, // CornerstoneWADOImageLoader uses this, Todo: remove it after fixing wado
+  Events as EVENTS, // CornerstoneDICOMImageLoader uses this, Todo: remove it after fixing wado
   //
   Settings,
   // Rendering Engine
   BaseVolumeViewport,
   VolumeViewport,
+  VolumeViewport3D,
   Viewport,
   StackViewport,
   RenderingEngine,
@@ -101,5 +114,12 @@ export {
   // CPU Rendering
   getShouldUseCPURendering,
   setUseCPURendering,
+  setPreferSizeOverAccuracy,
   resetUseCPURendering,
+  // SharedArrayBuffer
+  getShouldUseSharedArrayBuffer,
+  setUseSharedArrayBuffer,
+  resetUseSharedArrayBuffer,
+  // Geometry Loader
+  geometryLoader,
 };

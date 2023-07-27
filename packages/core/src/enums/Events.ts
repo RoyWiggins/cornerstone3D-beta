@@ -39,6 +39,13 @@ enum Events {
    */
   VOI_MODIFIED = 'CORNERSTONE_VOI_MODIFIED',
   /**
+   * Triggers on the HTML element when viewport modifies its display area
+   *
+   * Make use of {@link EventTypes.DisplayAreaModifiedEvent | DisplayAreaModified Event Type } for typing your event listeners for DISPLAY_AREA_MODIFIED event,
+   * and see what event detail is included in {@link EventTypes.DisplayAreaModifiedEventDetail | DisplayAreaModified Event Detail }
+   */
+  DISPLAY_AREA_MODIFIED = 'CORNERSTONE_DISPLAY_AREA_MODIFIED',
+  /**
    * Triggers on the eventTarget when the element is disabled
    *
    * Make use of {@link EventTypes.ElementDisabledEvent | ElementDisabled Event Type } for typing your event listeners for ELEMENT_DISABLED event,
@@ -162,7 +169,7 @@ enum Events {
   IMAGE_SPACING_CALIBRATED = 'CORNERSTONE_IMAGE_SPACING_CALIBRATED',
   /**
    * Triggers on the eventTarget when there is a progress in the image load process. Note: this event
-   * is being used in the Cornerstone-WADO-Image-Loader repository. See {@link https://github.com/cornerstonejs/cornerstoneWADOImageLoader/blob/master/src/imageLoader/internal/xhrRequest.js | here}
+   * is being used in the dicom-image-loader repository. See {@link https://github.com/cornerstonejs/cornerstoneDICOMImageLoader/blob/master/src/imageLoader/internal/xhrRequest.js | here}
    *
    * Make use of {@link EventTypes.ImageLoadProgress | ImageLoadProgress Event Type } for typing your event listeners for IMAGE_LOAD_PROGRESS event,
    * and see what event detail is included in {@link EventTypes.ImageLoadProgressEventDetail | ImageLoadProgress Event Detail }
@@ -183,6 +190,16 @@ enum Events {
    */
   STACK_VIEWPORT_SCROLL = 'CORNERSTONE_STACK_VIEWPORT_SCROLL',
 
+  /**
+   * Triggers on the eventTarget when a new geometry is added to the geometry cache
+   */
+  GEOMETRY_CACHE_GEOMETRY_ADDED = 'CORNERSTONE_GEOMETRY_CACHE_GEOMETRY_ADDED',
+
+  /**
+   * Triggers when the scroll function is called with a delta that is out of bounds.
+   * This is usually for signaling that the user may want a different volume for partially loaded volumes which is meant to optimize memory.
+   */
+  VOLUME_SCROLL_OUT_OF_BOUNDS = 'CORNERSTONE_VOLUME_SCROLL_OUT_OF_BOUNDS',
   // IMAGE_CACHE_FULL = 'CORNERSTONE_IMAGE_CACHE_FULL',
   // PRE_RENDER = 'CORNERSTONE_PRE_RENDER',
   // ELEMENT_RESIZED = 'CORNERSTONE_ELEMENT_RESIZED',

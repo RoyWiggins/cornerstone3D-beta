@@ -4,6 +4,7 @@ import Point3 from './Point3';
 import ViewportInputOptions from './ViewportInputOptions';
 import { ActorEntry } from './IActor';
 import ViewportType from '../enums/ViewportType';
+import DisplayArea from './displayArea';
 
 /**
  * Viewport interface for cornerstone viewports
@@ -37,6 +38,8 @@ interface IViewport {
   suppressEvents: boolean;
   /** if the viewport has been disabled */
   isDisabled: boolean;
+  /** the rotation applied to the view */
+  getRotation: () => number;
   /** frameOfReferenceUID the viewport's default actor is rendering */
   getFrameOfReferenceUID: () => string;
   /** method to convert canvas to world coordinates */
@@ -61,6 +64,8 @@ interface IViewport {
   addActor(actorEntry: ActorEntry): void;
   /** remove all actors from the viewport */
   removeAllActors(): void;
+  /** remove array of uids */
+  removeActors(actorUIDs: Array<string>): void;
   /** returns the renderingEngine instance the viewport belongs to */
   getRenderingEngine(): any;
   /** returns the vtkRenderer (for GPU rendering) of the viewport */
@@ -69,6 +74,14 @@ interface IViewport {
   render(): void;
   /** set options for the viewport */
   setOptions(options: ViewportInputOptions, immediate: boolean): void;
+  /** set displayArea for the viewport */
+  setDisplayArea(
+    displayArea: DisplayArea,
+    callResetCamera?: boolean,
+    suppressEvents?: boolean
+  );
+  /** returns the displayArea */
+  getDisplayArea(): DisplayArea | undefined;
   /** reset camera and options*/
   reset(immediate: boolean): void;
   /** returns the canvas */
@@ -88,6 +101,7 @@ interface IViewport {
   /** whether the viewport has custom rendering */
   customRenderViewportToCanvas: () => unknown;
   _getCorners(bounds: Array<number>): Array<number>[];
+  updateRenderingPipeline: () => void;
 }
 
 /**

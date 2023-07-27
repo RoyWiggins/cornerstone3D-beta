@@ -1,5 +1,6 @@
 import SegmentationRepresentations from '../../enums/SegmentationRepresentations';
 import { labelmapDisplay } from '../../tools/displayTools/Labelmap';
+import { contourDisplay } from '../../tools/displayTools/Contour';
 
 import {
   getSegmentationRepresentations,
@@ -71,6 +72,12 @@ function _removeSegmentation(
 
   if (type === SegmentationRepresentations.Labelmap) {
     labelmapDisplay.removeSegmentationRepresentation(
+      toolGroupId,
+      segmentationRepresentationUID,
+      immediate
+    );
+  } else if (type === SegmentationRepresentations.Contour) {
+    contourDisplay.removeSegmentationRepresentation(
       toolGroupId,
       segmentationRepresentationUID,
       immediate

@@ -27,8 +27,10 @@ const {
   ProbeTool,
   RectangleROITool,
   EllipticalROITool,
+  CircleROITool,
   BidirectionalTool,
   AngleTool,
+  CobbAngleTool,
   ToolGroupManager,
   ArrowAnnotateTool,
   StackScrollMouseWheelTool,
@@ -69,8 +71,10 @@ const toolsNames = [
   ProbeTool.toolName,
   RectangleROITool.toolName,
   EllipticalROITool.toolName,
+  CircleROITool.toolName,
   BidirectionalTool.toolName,
   AngleTool.toolName,
+  CobbAngleTool.toolName,
   ArrowAnnotateTool.toolName,
 ];
 let selectedToolName = toolsNames[0];
@@ -137,8 +141,10 @@ async function run() {
   cornerstoneTools.addTool(ProbeTool);
   cornerstoneTools.addTool(RectangleROITool);
   cornerstoneTools.addTool(EllipticalROITool);
+  cornerstoneTools.addTool(CircleROITool);
   cornerstoneTools.addTool(BidirectionalTool);
   cornerstoneTools.addTool(AngleTool);
+  cornerstoneTools.addTool(CobbAngleTool);
   cornerstoneTools.addTool(ArrowAnnotateTool);
   cornerstoneTools.addTool(StackScrollMouseWheelTool);
 
@@ -151,8 +157,10 @@ async function run() {
   toolGroup.addTool(ProbeTool.toolName);
   toolGroup.addTool(RectangleROITool.toolName);
   toolGroup.addTool(EllipticalROITool.toolName);
+  toolGroup.addTool(CircleROITool.toolName);
   toolGroup.addTool(BidirectionalTool.toolName);
   toolGroup.addTool(AngleTool.toolName);
+  toolGroup.addTool(CobbAngleTool.toolName);
   toolGroup.addTool(ArrowAnnotateTool.toolName);
   toolGroup.addTool(StackScrollMouseWheelTool.toolName);
 
@@ -171,8 +179,10 @@ async function run() {
   toolGroup.setToolPassive(ProbeTool.toolName);
   toolGroup.setToolPassive(RectangleROITool.toolName);
   toolGroup.setToolPassive(EllipticalROITool.toolName);
+  toolGroup.setToolPassive(CircleROITool.toolName);
   toolGroup.setToolPassive(BidirectionalTool.toolName);
   toolGroup.setToolPassive(AngleTool.toolName);
+  toolGroup.setToolPassive(CobbAngleTool.toolName);
   toolGroup.setToolPassive(ArrowAnnotateTool.toolName);
 
   // Get Cornerstone imageIds and fetch metadata into RAM
@@ -211,8 +221,7 @@ async function run() {
   const stack = imageIds;
 
   // Set the stack on the viewport
-  const currentIndex = Math.floor(stack.length / 2);
-  viewport.setStack(stack, currentIndex);
+  viewport.setStack(stack, 0);
 
   // Render the image
   viewport.render();

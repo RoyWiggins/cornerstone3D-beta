@@ -3,13 +3,13 @@ import vtkMatrixBuilder from '@kitware/vtk.js/Common/Core/MatrixBuilder';
 import vtkMath from '@kitware/vtk.js/Common/Core/Math';
 import vtkPlane from '@kitware/vtk.js/Common/DataModel/Plane';
 
-import { vec2, vec3, mat4 } from 'gl-matrix';
+import { vec2, vec3 } from 'gl-matrix';
 import _cloneDeep from 'lodash.clonedeep';
 
 import Events from '../enums/Events';
 import ViewportType from '../enums/ViewportType';
 import renderingEngineCache from './renderingEngineCache';
-import { triggerEvent, planar, isImageActor } from '../utilities';
+import { triggerEvent, planar, isImageActor, actorIsA } from '../utilities';
 import hasNaNValues from '../utilities/hasNaNValues';
 import { RENDERING_DEFAULTS } from '../constants';
 import type {
@@ -21,9 +21,11 @@ import type {
   Point3,
   FlipDirection,
   EventTypes,
+  DisplayArea,
 } from '../types';
 import type { ViewportInput, IViewport } from '../types/IViewport';
 import type { vtkSlabCamera } from './vtkClasses/vtkSlabCamera';
+import { getConfiguration } from '../init';
 
 /**
  * An object representing a single viewport, which is a camera
@@ -47,7 +49,6 @@ class Viewport implements IViewport {
   readonly type: ViewportType;
   protected flipHorizontal = false;
   protected flipVertical = false;
-  protected rotation = 0;
   public isDisabled: boolean;
 
   /** sx of viewport on the offscreen canvas */
@@ -62,7 +63,7 @@ class Viewport implements IViewport {
   _actors: Map<string, any>;
   /** Default options for the viewport which includes orientation, viewPlaneNormal and backgroundColor */
   readonly defaultOptions: any;
-  /** options for the viewport which includes orientation axis and backgroundColor */
+  /** options for the viewport which includes orientation axis, backgroundColor and displayArea */
   options: ViewportInputOptions;
   private _suppressCameraModifiedEvents = false;
   /** A flag representing if viewport methods should fire events or not */
@@ -72,6 +73,10 @@ class Viewport implements IViewport {
    * the relative pan/zoom
    */
   protected initialCamera: ICamera;
+  /** The camera that is defined for resetting displayArea to ensure absolute displayArea
+   * settings
+   */
+  private fitToCanvasCamera: ICamera;
 
   constructor(props: ViewportInput) {
     this.id = props.id;
@@ -99,12 +104,14 @@ class Viewport implements IViewport {
     this.isDisabled = false;
   }
 
+  getRotation: () => number;
   getFrameOfReferenceUID: () => string;
   canvasToWorld: (canvasPos: Point2) => Point3;
   worldToCanvas: (worldPos: Point3) => Point2;
   customRenderViewportToCanvas: () => unknown;
   resize: () => void;
   getProperties: () => void;
+  updateRenderingPipeline: () => void;
 
   static get useCustomRenderingPipeline(): boolean {
     return false;
@@ -124,7 +131,7 @@ class Viewport implements IViewport {
    *
    * @returns The `vtkRenderer` for the `Viewport`.
    */
-  public getRenderer() {
+  public getRenderer(): any {
     const renderingEngine = this.getRenderingEngine();
 
     if (!renderingEngine || renderingEngine.hasBeenDestroyed) {
@@ -154,7 +161,9 @@ class Viewport implements IViewport {
 
     // TODO When this is needed we need to move the camera position.
     // We can steal some logic from the tools we build to do this.
-
+    if (this.options?.displayArea) {
+      this.setDisplayArea(this.options?.displayArea);
+    }
     if (immediate) {
       this.render();
     }
@@ -306,7 +315,7 @@ class Viewport implements IViewport {
   private getDefaultImageData(): any {
     const actorEntry = this.getDefaultActor();
 
-    if (actorEntry && isImageActor(actorEntry.actor)) {
+    if (actorEntry && isImageActor(actorEntry)) {
       return actorEntry.actor.getMapper().getInputData();
     }
   }
@@ -373,7 +382,7 @@ class Viewport implements IViewport {
    * Remove the actor from the viewport
    * @param actorUID - The unique identifier for the actor.
    */
-  public removeActor(actorUID: string): void {
+  _removeActor(actorUID: string): void {
     const actorEntry = this.getActor(actorUID);
     if (!actorEntry) {
       console.warn(`Actor ${actorUID} does not exist for this viewport`);
@@ -390,7 +399,7 @@ class Viewport implements IViewport {
    */
   public removeActors(actorUIDs: Array<string>): void {
     actorUIDs.forEach((actorUID) => {
-      this.removeActor(actorUID);
+      this._removeActor(actorUID);
     });
   }
 
@@ -528,6 +537,80 @@ class Viewport implements IViewport {
   }
 
   /**
+   * Sets the camera to an initial bounds. If
+   * resetPan and resetZoom are true it places the focal point at the center of
+   * the volume (or slice); otherwise, only the camera zoom and camera Pan or Zoom
+   * is reset for the current view.
+   * @param displayArea - The display area of interest.
+   * @param suppressEvents - If true, don't fire displayArea event.
+   */
+  public setDisplayArea(
+    displayArea: DisplayArea,
+    suppressEvents = false
+  ): void {
+    const { storeAsInitialCamera } = displayArea;
+
+    // make calculations relative to the fitToCanvasCamera view
+    this.setCamera(this.fitToCanvasCamera, false);
+
+    const { imageArea, imageCanvasPoint } = displayArea;
+
+    if (imageArea) {
+      const [areaX, areaY] = imageArea;
+      const zoom = Math.min(this.getZoom() / areaX, this.getZoom() / areaY);
+      this.setZoom(zoom, storeAsInitialCamera);
+    }
+
+    // getting the image info
+    const imageData = this.getDefaultImageData();
+    if (imageCanvasPoint && imageData) {
+      const { imagePoint, canvasPoint } = imageCanvasPoint;
+      const [canvasX, canvasY] = canvasPoint;
+      const devicePixelRatio = window?.devicePixelRatio || 1;
+      const validateCanvasPanX = this.sWidth / devicePixelRatio;
+      const validateCanvasPanY = this.sHeight / devicePixelRatio;
+      const canvasPanX = validateCanvasPanX * (canvasX - 0.5);
+      const canvasPanY = validateCanvasPanY * (canvasY - 0.5);
+
+      const dimensions = imageData.getDimensions();
+      const canvasZero = this.worldToCanvas([0, 0, 0]);
+      const canvasEdge = this.worldToCanvas(dimensions);
+      const canvasImage = [
+        canvasEdge[0] - canvasZero[0],
+        canvasEdge[1] - canvasZero[1],
+      ];
+      const [imgWidth, imgHeight] = canvasImage;
+      const [imageX, imageY] = imagePoint;
+      const imagePanX = imgWidth * (0.5 - imageX);
+      const imagePanY = imgHeight * (0.5 - imageY);
+
+      const newPositionX = imagePanX + canvasPanX;
+      const newPositionY = imagePanY + canvasPanY;
+
+      const deltaPoint2: Point2 = [newPositionX, newPositionY];
+      this.setPan(deltaPoint2, storeAsInitialCamera);
+    }
+
+    if (storeAsInitialCamera) {
+      this.options.displayArea = displayArea;
+    }
+
+    if (!suppressEvents) {
+      const eventDetail: EventTypes.DisplayAreaModifiedEventDetail = {
+        viewportId: this.id,
+        displayArea: displayArea,
+        storeAsInitialCamera: storeAsInitialCamera,
+      };
+
+      triggerEvent(this.element, Events.DISPLAY_AREA_MODIFIED, eventDetail);
+    }
+  }
+
+  public getDisplayArea(): DisplayArea | undefined {
+    return this.options?.displayArea;
+  }
+
+  /**
    * Resets the camera based on the rendering volume(s) bounds. If
    * resetPan and resetZoom are true it places the focal point at the center of
    * the volume (or slice); otherwise, only the camera zoom and camera Pan or Zoom
@@ -555,7 +638,6 @@ class Viewport implements IViewport {
     });
 
     const previousCamera = _cloneDeep(this.getCamera());
-
     const bounds = renderer.computeVisiblePropBounds();
     const focalPoint = <Point3>[0, 0, 0];
     const imageData = this.getDefaultImageData();
@@ -672,6 +754,8 @@ class Viewport implements IViewport {
 
     const modifiedCamera = _cloneDeep(this.getCamera());
 
+    this.setFitToCanvasCamera(_cloneDeep(this.getCamera()));
+
     if (storeAsInitialCamera) {
       this.setInitialCamera(modifiedCamera);
     }
@@ -687,6 +771,16 @@ class Viewport implements IViewport {
 
     this.triggerCameraModifiedEventIfNecessary(previousCamera, modifiedCamera);
 
+    if (
+      imageData &&
+      this.options?.displayArea &&
+      resetZoom &&
+      resetPan &&
+      resetToCenter
+    ) {
+      this.setDisplayArea(this.options?.displayArea);
+    }
+
     return true;
   }
 
@@ -698,6 +792,16 @@ class Viewport implements IViewport {
    */
   protected setInitialCamera(camera: ICamera): void {
     this.initialCamera = camera;
+  }
+
+  /**
+   * Sets the provided camera as the displayArea camera.
+   * This allows computing differences applied later as compared to the initial
+   * position, for things like zoom and pan.
+   * @param camera - to store as the initial value.
+   */
+  protected setFitToCanvasCamera(camera: ICamera): void {
+    this.fitToCanvasCamera = camera;
   }
 
   /**
@@ -955,11 +1059,16 @@ class Viewport implements IViewport {
 
     // update clippingPlanes if volume viewports
     const actorEntry = this.getDefaultActor();
-    if (actorEntry?.actor?.isA('vtkVolume')) {
-      this.updateClippingPlanesForActors(updatedCamera);
+
+    if (!actorEntry || !actorEntry.actor) {
+      return;
     }
 
-    if (actorEntry?.actor?.isA('vtkImageSlice')) {
+    const isImageSlice = actorIsA(actorEntry, 'vtkImageSlice');
+
+    if (!isImageSlice) {
+      this.updateClippingPlanesForActors(updatedCamera);
+    } else {
       const renderer = this.getRenderer();
       renderer.resetCameraClippingRange();
     }
@@ -990,7 +1099,7 @@ class Viewport implements IViewport {
         element: this.element,
         viewportId: this.id,
         renderingEngineId: this.renderingEngineId,
-        rotation: this.rotation,
+        rotation: this.getRotation(),
       };
 
       triggerEvent(this.element, Events.CAMERA_MODIFIED, eventDetail);
@@ -1007,7 +1116,7 @@ class Viewport implements IViewport {
       // we assume that the first two clipping plane of the mapper are always
       // the 'camera' clipping. Update clipping planes only if the actor is
       // a vtkVolume
-      if (!actorEntry.actor || !isImageActor(actorEntry.actor)) {
+      if (!actorEntry.actor) {
         return;
       }
 
@@ -1112,6 +1221,12 @@ class Viewport implements IViewport {
     }
 
     return { widthWorld: maxX - minX, heightWorld: maxY - minY };
+  }
+
+  protected _shouldUseNativeDataType() {
+    const { useNorm16Texture, preferSizeOverAccuracy } =
+      getConfiguration().rendering;
+    return useNorm16Texture || preferSizeOverAccuracy;
   }
 
   _getCorners(bounds: Array<number>): Array<number>[] {

@@ -29,7 +29,7 @@ const {
  * Activates the contour drawing event loop.
  */
 function activateDraw(
-  evt: EventTypes.MouseDownActivateEventType,
+  evt: EventTypes.InteractionEventType,
   annotation: PlanarFreehandROIAnnotation,
   viewportIdsToRender: string[]
 ): void {
@@ -57,6 +57,7 @@ function activateDraw(
     spacing,
     xDir,
     yDir,
+    movingTextBox: false,
   };
 
   state.isInteractingWithTool = true;
@@ -64,6 +65,9 @@ function activateDraw(
   element.addEventListener(Events.MOUSE_UP, this.mouseUpDrawCallback);
   element.addEventListener(Events.MOUSE_DRAG, this.mouseDragDrawCallback);
   element.addEventListener(Events.MOUSE_CLICK, this.mouseUpDrawCallback);
+  element.addEventListener(Events.TOUCH_END, this.mouseUpDrawCallback);
+  element.addEventListener(Events.TOUCH_DRAG, this.mouseDragDrawCallback);
+  element.addEventListener(Events.TOUCH_TAP, this.mouseUpDrawCallback);
 
   hideElementCursor(element);
 }
@@ -76,6 +80,9 @@ function deactivateDraw(element: HTMLDivElement): void {
   element.removeEventListener(Events.MOUSE_UP, this.mouseUpDrawCallback);
   element.removeEventListener(Events.MOUSE_DRAG, this.mouseDragDrawCallback);
   element.removeEventListener(Events.MOUSE_CLICK, this.mouseUpDrawCallback);
+  element.removeEventListener(Events.TOUCH_END, this.mouseUpDrawCallback);
+  element.removeEventListener(Events.TOUCH_DRAG, this.mouseDragDrawCallback);
+  element.removeEventListener(Events.TOUCH_TAP, this.mouseUpDrawCallback);
 
   resetElementCursor(element);
 }
@@ -84,9 +91,7 @@ function deactivateDraw(element: HTMLDivElement): void {
  * Adds points to a set of preview canvas points of the contour being created.
  * Checks if crossing of lines means early completion and editing needs to be started.
  */
-function mouseDragDrawCallback(
-  evt: EventTypes.MouseDragEventType | EventTypes.MouseMoveEventType
-): void {
+function mouseDragDrawCallback(evt: EventTypes.InteractionEventType): void {
   const eventDetail = evt.detail;
   const { currentPoints, element } = eventDetail;
   const worldPos = currentPoints.world;
@@ -94,7 +99,14 @@ function mouseDragDrawCallback(
   const enabledElement = getEnabledElement(element);
   const { renderingEngine, viewport } = enabledElement;
 
-  const { viewportIdsToRender, xDir, yDir, spacing } = this.commonData;
+  const {
+    annotation,
+    viewportIdsToRender,
+    xDir,
+    yDir,
+    spacing,
+    movingTextBox,
+  } = this.commonData;
   const { polylineIndex, canvasPoints } = this.drawData;
 
   const lastCanvasPoint = canvasPoints[canvasPoints.length - 1];
@@ -113,21 +125,38 @@ function mouseDragDrawCallback(
     return;
   }
 
-  const crossingIndex = this.findCrossingIndexDuringCreate(evt);
+  if (movingTextBox) {
+    this.isDrawing = false;
 
-  if (crossingIndex !== undefined) {
-    // If we have crossed our drawing line, create a closed contour and then
-    // start an edit.
-    this.applyCreateOnCross(evt, crossingIndex);
+    // Drag mode - Move the text boxes world position
+    const { deltaPoints } = eventDetail as EventTypes.MouseDragEventDetail;
+    const worldPosDelta = deltaPoints.world;
+
+    const { textBox } = annotation.data.handles;
+    const { worldPosition } = textBox;
+
+    worldPosition[0] += worldPosDelta[0];
+    worldPosition[1] += worldPosDelta[1];
+    worldPosition[2] += worldPosDelta[2];
+
+    textBox.hasMoved = true;
   } else {
-    const numPointsAdded = addCanvasPointsToArray(
-      element,
-      canvasPoints,
-      canvasPos,
-      this.commonData
-    );
+    const crossingIndex = this.findCrossingIndexDuringCreate(evt);
 
-    this.drawData.polylineIndex = polylineIndex + numPointsAdded;
+    if (crossingIndex !== undefined) {
+      // If we have crossed our drawing line, create a closed contour and then
+      // start an edit.
+      this.applyCreateOnCross(evt, crossingIndex);
+    } else {
+      const numPointsAdded = addCanvasPointsToArray(
+        element,
+        canvasPoints,
+        canvasPos,
+        this.commonData
+      );
+
+      this.drawData.polylineIndex = polylineIndex + numPointsAdded;
+    }
   }
 
   triggerAnnotationRenderForViewportIds(renderingEngine, viewportIdsToRender);
@@ -139,9 +168,7 @@ function mouseDragDrawCallback(
  * If the `allowOpenContours` configuration option is `false`, always creates a
  * closed contour.
  */
-function mouseUpDrawCallback(
-  evt: EventTypes.MouseUpEventType | EventTypes.MouseClickEventType
-): void {
+function mouseUpDrawCallback(evt: EventTypes.InteractionEventType): void {
   const { allowOpenContours } = this.configuration;
   const { canvasPoints } = this.drawData;
   const firstPoint = canvasPoints[0];
@@ -301,7 +328,7 @@ function completeDrawOpenContour(element: HTMLDivElement): boolean {
  * index of the point just before the lines cross.
  */
 function findCrossingIndexDuringCreate(
-  evt: EventTypes.MouseDragEventType
+  evt: EventTypes.InteractionEventType
 ): number | undefined {
   // Note as we super sample the added points, we need to check the whole last mouse move, not the points
   const eventDetail = evt.detail;
@@ -333,7 +360,7 @@ function findCrossingIndexDuringCreate(
  * since this occurs during a mouse drag.
  */
 function applyCreateOnCross(
-  evt: EventTypes.MouseDragEventType | EventTypes.MouseMoveEventType,
+  evt: EventTypes.InteractionEventType,
   crossingIndex: number
 ): void {
   const eventDetail = evt.detail;

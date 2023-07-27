@@ -11,8 +11,8 @@ import { BaseTool } from './base';
  */
 class TrackballRotateTool extends BaseTool {
   static toolName;
-  touchDragCallback: (evt: EventTypes.MouseDragEventType) => void;
-  mouseDragCallback: (evt: EventTypes.MouseDragEventType) => void;
+  touchDragCallback: (evt: EventTypes.InteractionEventType) => void;
+  mouseDragCallback: (evt: EventTypes.InteractionEventType) => void;
 
   constructor(
     toolProps: PublicToolProps = {},
@@ -63,7 +63,7 @@ class TrackballRotateTool extends BaseTool {
 
   // pseudocode inspired from
   // https://github.com/kitware/vtk-js/blob/HEAD/Sources/Interaction/Manipulators/MouseCameraUnicamRotateManipulator/index.js
-  _dragCallback(evt: EventTypes.MouseDragEventType): void {
+  _dragCallback(evt: EventTypes.InteractionEventType): void {
     const { element, currentPoints, lastPoints } = evt.detail;
     const currentPointsCanvas = currentPoints.canvas;
     const lastPointsCanvas = lastPoints.canvas;
@@ -113,19 +113,22 @@ class TrackballRotateTool extends BaseTool {
         rotateIncrementDegrees;
 
       const upVec = camera.viewUp;
+      const atV = camera.viewPlaneNormal;
+      const rightV: Types.Point3 = [0, 0, 0];
+      const forwardV: Types.Point3 = [0, 0, 0];
+
+      vtkMath.cross(upVec, atV, rightV);
+      vtkMath.normalize(rightV);
+
+      vtkMath.cross(atV, rightV, forwardV);
+      vtkMath.normalize(forwardV);
       vtkMath.normalize(upVec);
 
-      this.rotateCamera(viewport, centerWorld, upVec, angleX);
+      this.rotateCamera(viewport, centerWorld, forwardV, angleX);
 
       const angleY =
         (normalizedPreviousPosition[1] - normalizedPosition[1]) *
         rotateIncrementDegrees;
-
-      const atV = camera.viewPlaneNormal;
-      const upV = camera.viewUp;
-      const rightV: Types.Point3 = [0, 0, 0];
-      vtkMath.cross(upV, atV, rightV);
-      vtkMath.normalize(rightV);
 
       this.rotateCamera(viewport, centerWorld, rightV, angleY);
 

@@ -13,7 +13,10 @@ import { VolumeViewportProperties } from '.';
 export default interface IVolumeViewport extends IViewport {
   useCPURendering: boolean;
   getFrameOfReferenceUID: () => string;
-  getProperties: () => any;
+  /**
+   * Retrieve the viewport properties
+   */
+  getProperties: () => VolumeViewportProperties;
   /**
    * canvasToWorld Returns the world coordinates of the given `canvasPos`
    * projected onto the plane defined by the `Viewport`'s `vtkCamera`'s focal point
@@ -84,6 +87,7 @@ export default interface IVolumeViewport extends IViewport {
    * the viewport, it does nothing.
    */
   removeVolumeActors(actorUIDs: Array<string>, immediate?: boolean): void;
+
   /**
    * Given a point in world coordinates, return the intensity at that point
    */

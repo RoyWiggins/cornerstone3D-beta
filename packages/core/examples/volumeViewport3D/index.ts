@@ -1,20 +1,19 @@
 import {
-  RenderingEngine,
-  Types,
-  Enums,
-  setVolumesForViewports,
-  volumeLoader,
-  utilities,
   CONSTANTS,
+  Enums,
+  RenderingEngine,
+  setVolumesForViewports,
+  Types,
+  utilities,
+  volumeLoader,
 } from '@cornerstonejs/core';
-import {
-  initDemo,
-  createImageIdsAndCacheMetaData,
-  setTitleAndDescription,
-  addDropdownToToolbar,
-} from '../../../../utils/demo/helpers';
 import * as cornerstoneTools from '@cornerstonejs/tools';
-import { VolumeActor } from 'core/src/types';
+import {
+  addDropdownToToolbar,
+  createImageIdsAndCacheMetaData,
+  initDemo,
+  setTitleAndDescription,
+} from '../../../../utils/demo/helpers';
 
 // This is for debugging purposes
 console.warn(
@@ -75,7 +74,7 @@ addDropdownToToolbar({
   onSelectedValueChange: (presetName) => {
     const volumeActor = renderingEngine
       .getViewport(viewportId)
-      .getDefaultActor().actor as VolumeActor;
+      .getDefaultActor().actor as Types.VolumeActor;
 
     utilities.applyPreset(
       volumeActor,
@@ -139,7 +138,7 @@ async function run() {
       type: ViewportType.VOLUME_3D,
       element: element1,
       defaultOptions: {
-        orientation: Enums.OrientationAxis.SAGITTAL,
+        orientation: Enums.OrientationAxis.CORONAL,
         background: <Types.Point3>[0.2, 0, 0.2],
       },
     },
@@ -162,16 +161,12 @@ async function run() {
     () => {
       const volumeActor = renderingEngine
         .getViewport(viewportId)
-        .getDefaultActor().actor as VolumeActor;
+        .getDefaultActor().actor as Types.VolumeActor;
 
       utilities.applyPreset(
         volumeActor,
         CONSTANTS.VIEWPORT_PRESETS.find((preset) => preset.name === 'CT-Bone')
       );
-
-      const renderer = viewport.getRenderer();
-      renderer.getActiveCamera().elevation(-70);
-      viewport.setCamera({ parallelScale: 600 });
 
       viewport.render();
     }

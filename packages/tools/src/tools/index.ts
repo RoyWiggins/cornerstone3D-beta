@@ -3,6 +3,7 @@ import PanTool from './PanTool';
 import TrackballRotateTool from './TrackballRotateTool';
 import WindowLevelTool from './WindowLevelTool';
 import StackScrollTool from './StackScrollTool';
+import PlanarRotateTool from './PlanarRotateTool';
 import StackScrollMouseWheelTool from './StackScrollToolMouseWheelTool';
 import ZoomTool from './ZoomTool';
 import VolumeRotateMouseWheelTool from './VolumeRotateMouseWheelTool';
@@ -18,11 +19,14 @@ import DragProbeTool from './annotation/DragProbeTool';
 import RectangleROITool from './annotation/RectangleROITool';
 import EllipticalROITool from './annotation/EllipticalROITool';
 import GravisROITool from './annotation/GravisROITool'
+import CircleROITool from './annotation/CircleROITool';
 import PlanarFreehandROITool from './annotation/PlanarFreehandROITool';
 import ArrowAnnotateTool from './annotation/ArrowAnnotateTool';
 import AngleTool from './annotation/AngleTool';
+import CobbAngleTool from './annotation/CobbAngleTool';
 import ReferenceCursors from './ReferenceCursors';
 import ReferenceLines from './ReferenceLinesTool';
+import ScaleOverlayTool from './ScaleOverlayTool';
 
 // Segmentation DisplayTool
 import SegmentationDisplayTool from './displayTools/SegmentationDisplayTool';
@@ -46,6 +50,7 @@ export {
   DragProbeTool,
   WindowLevelTool,
   StackScrollTool,
+  PlanarRotateTool,
   StackScrollMouseWheelTool,
   ZoomTool,
   VolumeRotateMouseWheelTool,
@@ -59,9 +64,11 @@ export {
   RectangleROITool,
   EllipticalROITool,
   GravisROITool,
+  CircleROITool,
   PlanarFreehandROITool,
   ArrowAnnotateTool,
   AngleTool,
+  CobbAngleTool,
   ReferenceCursors,
   // Segmentations Display
   SegmentationDisplayTool,
@@ -75,4 +82,5 @@ export {
   MagnifyTool,
   ReferenceLines,
   PaintFillTool,
+  ScaleOverlayTool,
 };

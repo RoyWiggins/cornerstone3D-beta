@@ -4,6 +4,7 @@
 
 ```ts
 
+import { default as default_2 } from 'packages/core/dist/esm/enums/RequestType';
 import type { mat4 } from 'gl-matrix';
 import type vtkActor from '@kitware/vtk.js/Rendering/Core/Actor';
 import type { vtkImageData } from '@kitware/vtk.js/Common/DataModel/ImageData';
@@ -51,6 +52,81 @@ type CameraModifiedEventDetail = {
     renderingEngineId: string;
     rotation?: number;
 };
+
+// @public (undocumented)
+type ColormapPublic = {
+    name: string;
+    opacityMapping?: OpacityMapping[];
+};
+
+// @public (undocumented)
+type ColormapRegistration = {
+    ColorSpace: string;
+    Name: string;
+    RGBPoints: RGB[];
+};
+
+// @public (undocumented)
+type ContourData = {
+    points: Point3[];
+    type: ContourType;
+    color: Point3;
+    segmentIndex: number;
+};
+
+// @public (undocumented)
+type ContourSetData = {
+    id: string;
+    data: ContourData[];
+    frameOfReferenceUID: string;
+    color?: Point3;
+    segmentIndex?: number;
+};
+
+// @public (undocumented)
+enum ContourType {
+    // (undocumented)
+    CLOSED_PLANAR = 'CLOSED_PLANAR',
+    // (undocumented)
+    OPEN_PLANAR = 'OPEN_PLANAR',
+}
+
+// @public (undocumented)
+type Cornerstone3DConfig = {
+    detectGPU: any;
+    rendering: {
+        // vtk.js supports 8bit integer textures and 32bit float textures.
+        // However, if the client has norm16 textures (it can be seen by visiting
+        // the webGl report at https://webglreport.com/?v=2), vtk will be default
+        // to use it to improve memory usage. However, if the client don't have
+        // it still another level of optimization can happen by setting the
+        // preferSizeOverAccuracy since it will reduce the size of the texture to half
+        // float at the cost of accuracy in rendering. This is a tradeoff that the
+        // client can decide.
+        //
+        // Read more in the following Pull Request:
+        // 1. HalfFloat: https://github.com/Kitware/vtk-js/pull/2046
+        // 2. Norm16: https://github.com/Kitware/vtk-js/pull/2058
+        preferSizeOverAccuracy: boolean;
+        // Whether the EXT_texture_norm16 extension is supported by the browser.
+        // WebGL 2 report (link: https://webglreport.com/?v=2) can be used to check
+        // if the browser supports this extension.
+        // In case the browser supports this extension, instead of using 32bit float
+        // textures, 16bit float textures will be used to reduce the memory usage where
+        // possible.
+        // Norm16 may not work currently due to the two active bugs in chrome + safari
+        // https://bugs.chromium.org/p/chromium/issues/detail?id=1408247
+        // https://bugs.webkit.org/show_bug.cgi?id=252039
+        useNorm16Texture: boolean;
+        useCPURendering: boolean;
+        strictZSpacingForVolumeViewport: boolean;
+    };
+};
+
+// @public (undocumented)
+export function cornerstoneStreamingDynamicImageVolumeLoader(volumeId: string, options: {
+    imageIds: string[];
+}): IVolumeLoader_2;
 
 // @public (undocumented)
 export function cornerstoneStreamingImageVolumeLoader(volumeId: string, options: {
@@ -121,40 +197,8 @@ interface CPUFallbackEnabledElement {
         dimensions?: Point3;
         spacing?: Point3;
         origin?: Point3;
-        imagePlaneModule?: {
-            frameOfReferenceUID: string;
-            rows: number;
-            columns: number;
-            imageOrientationPatient: number[];
-            rowCosines: Point3;
-            columnCosines: Point3;
-            imagePositionPatient: number[];
-            sliceThickness?: number;
-            sliceLocation?: number;
-            pixelSpacing: Point2;
-            rowPixelSpacing: number;
-            columnPixelSpacing: number;
-        };
-        imagePixelModule?: {
-            samplesPerPixel: number;
-            photometricInterpretation: string;
-            rows: number;
-            columns: number;
-            bitsAllocated: number;
-            bitsStored: number;
-            highBit: number;
-            pixelRepresentation: number;
-            planarConfiguration?: number;
-            pixelAspectRatio?: number;
-            smallestPixelValue?: number;
-            largestPixelValue?: number;
-            redPaletteColorLookupTableDescriptor?: number[];
-            greenPaletteColorLookupTableDescriptor?: number[];
-            bluePaletteColorLookupTableDescriptor?: number[];
-            redPaletteColorLookupTableData: number[];
-            greenPaletteColorLookupTableData: number[];
-            bluePaletteColorLookupTableData: number[];
-        };
+        imagePlaneModule?: ImagePlaneModule;
+        imagePixelModule?: ImagePixelModule;
     };
     // (undocumented)
     needsRedraw?: boolean;
@@ -302,7 +346,7 @@ type CPUIImageData = {
     origin: Point3;
     imageData: CPUImageData;
     metadata: { Modality: string };
-    scalarData: number[];
+    scalarData: PixelDataTypedArray;
     scaling: Scaling;
     hasPixelSpacing?: boolean;
     preScale?: {
@@ -324,7 +368,7 @@ type CPUImageData = {
     getIndexToWorld?: () => Point3;
     getSpacing?: () => Point3;
     getDirection?: () => Mat3;
-    getScalarData?: () => number[];
+    getScalarData?: () => PixelDataTypedArray;
     getDimensions?: () => Point3;
 };
 
@@ -338,6 +382,34 @@ interface CustomEvent_2<T = any> extends Event {
     cancelableArg: boolean,
     detailArg: T
     ): void;
+}
+
+// @public (undocumented)
+type DisplayArea = {
+    imageArea: [number, number]; // areaX, areaY
+    imageCanvasPoint: {
+        imagePoint: [number, number]; // imageX, imageY
+        canvasPoint: [number, number]; // canvasX, canvasY
+    };
+    storeAsInitialCamera: boolean;
+};
+
+// @public
+type DisplayAreaModifiedEvent = CustomEvent_2<DisplayAreaModifiedEventDetail>;
+
+// @public
+type DisplayAreaModifiedEventDetail = {
+    viewportId: string;
+    displayArea: DisplayArea;
+    volumeId?: string;
+    storeAsInitialCamera?: boolean;
+};
+
+// @public
+enum DynamicOperatorType {
+    AVERAGE = 'AVERAGE',
+    SUBTRACT = 'SUBTRACT',
+    SUM = 'SUM',
 }
 
 // @public
@@ -366,34 +438,38 @@ enum Events {
     CAMERA_MODIFIED = 'CORNERSTONE_CAMERA_MODIFIED',
 
     CAMERA_RESET = 'CORNERSTONE_CAMERA_RESET',
+    DISPLAY_AREA_MODIFIED = 'CORNERSTONE_DISPLAY_AREA_MODIFIED',
     ELEMENT_DISABLED = 'CORNERSTONE_ELEMENT_DISABLED',
     ELEMENT_ENABLED = 'CORNERSTONE_ELEMENT_ENABLED',
+    GEOMETRY_CACHE_GEOMETRY_ADDED = 'CORNERSTONE_GEOMETRY_CACHE_GEOMETRY_ADDED',
     IMAGE_CACHE_IMAGE_ADDED = 'CORNERSTONE_IMAGE_CACHE_IMAGE_ADDED',
     IMAGE_CACHE_IMAGE_REMOVED = 'CORNERSTONE_IMAGE_CACHE_IMAGE_REMOVED',
     IMAGE_LOAD_ERROR = 'IMAGE_LOAD_ERROR',
     IMAGE_LOAD_FAILED = 'CORNERSTONE_IMAGE_LOAD_FAILED',
     IMAGE_LOAD_PROGRESS = 'CORNERSTONE_IMAGE_LOAD_PROGRESS',
     IMAGE_LOADED = 'CORNERSTONE_IMAGE_LOADED',
-    IMAGE_RENDERED = 'CORNERSTONE_IMAGE_RENDERED',
 
+    IMAGE_RENDERED = 'CORNERSTONE_IMAGE_RENDERED',
     IMAGE_SPACING_CALIBRATED = 'CORNERSTONE_IMAGE_SPACING_CALIBRATED',
     IMAGE_VOLUME_MODIFIED = 'CORNERSTONE_IMAGE_VOLUME_MODIFIED',
     PRE_STACK_NEW_IMAGE = 'CORNERSTONE_PRE_STACK_NEW_IMAGE',
     STACK_NEW_IMAGE = 'CORNERSTONE_STACK_NEW_IMAGE',
     STACK_VIEWPORT_NEW_STACK = 'CORNERSTONE_STACK_VIEWPORT_NEW_STACK',
     STACK_VIEWPORT_SCROLL = 'CORNERSTONE_STACK_VIEWPORT_SCROLL',
+
     VOI_MODIFIED = 'CORNERSTONE_VOI_MODIFIED',
 
     VOLUME_CACHE_VOLUME_ADDED = 'CORNERSTONE_VOLUME_CACHE_VOLUME_ADDED',
-
     VOLUME_CACHE_VOLUME_REMOVED = 'CORNERSTONE_VOLUME_CACHE_VOLUME_REMOVED',
     VOLUME_LOADED = 'CORNERSTONE_VOLUME_LOADED',
+
     VOLUME_LOADED_FAILED = 'CORNERSTONE_VOLUME_LOADED_FAILED',
 
     VOLUME_NEW_IMAGE = 'CORNERSTONE_VOLUME_NEW_IMAGE',
 
-    VOLUME_VIEWPORT_NEW_VOLUME = 'CORNERSTONE_VOLUME_VIEWPORT_NEW_VOLUME',
+    VOLUME_SCROLL_OUT_OF_BOUNDS = 'CORNERSTONE_VOLUME_SCROLL_OUT_OF_BOUNDS',
 
+    VOLUME_VIEWPORT_NEW_VOLUME = 'CORNERSTONE_VOLUME_VIEWPORT_NEW_VOLUME',
     // IMAGE_CACHE_FULL = 'CORNERSTONE_IMAGE_CACHE_FULL',
     // PRE_RENDER = 'CORNERSTONE_PRE_RENDER',
     // ELEMENT_RESIZED = 'CORNERSTONE_ELEMENT_RESIZED',
@@ -405,6 +481,8 @@ declare namespace EventTypes {
         CameraModifiedEvent,
         VoiModifiedEvent,
         VoiModifiedEventDetail,
+        DisplayAreaModifiedEvent,
+        DisplayAreaModifiedEventDetail,
         ElementDisabledEvent,
         ElementDisabledEventDetail,
         ElementEnabledEvent,
@@ -453,6 +531,17 @@ type FlipDirection = {
 };
 
 // @public (undocumented)
+enum GeometryType {
+    // (undocumented)
+    CONTOUR = 'contour',
+}
+
+// @public (undocumented)
+export const helpers: {
+    getDynamicVolumeInfo: typeof getDynamicVolumeInfo;
+};
+
+// @public (undocumented)
 interface ICache {
     getCacheSize: () => number;
     getImageLoadObject: (imageId: string) => IImageLoadObject | void;
@@ -468,6 +557,22 @@ interface ICache {
     volumeLoadObject: IVolumeLoadObject
     ) => Promise<any>;
     setMaxCacheSize: (maxCacheSize: number) => void;
+}
+
+// @public (undocumented)
+interface ICachedGeometry {
+    // (undocumented)
+    geometry?: IGeometry;
+    // (undocumented)
+    geometryId: string;
+    // (undocumented)
+    geometryLoadObject: IGeometryLoadObject;
+    // (undocumented)
+    loaded: boolean;
+    // (undocumented)
+    sizeInBytes: number;
+    // (undocumented)
+    timeStamp: number;
 }
 
 // @public (undocumented)
@@ -519,6 +624,64 @@ interface ICamera {
     viewUp?: Point3;
 }
 
+// @public (undocumented)
+interface IContour {
+    // (undocumented)
+    color: any;
+    // (undocumented)
+    getColor(): Point3;
+    // (undocumented)
+    getFlatPointsArray(): number[];
+    getPoints(): Point3[];
+    // (undocumented)
+    _getSizeInBytes(): number;
+    // (undocumented)
+    getType(): ContourType;
+    // (undocumented)
+    readonly id: string;
+    // (undocumented)
+    points: Point3[];
+    // (undocumented)
+    readonly sizeInBytes: number;
+}
+
+// @public
+interface IContourSet {
+    // (undocumented)
+    contours: IContour[];
+    // (undocumented)
+    _createEachContour(data: ContourData[]): void;
+    // (undocumented)
+    readonly frameOfReferenceUID: string;
+    // (undocumented)
+    getCentroid(): Point3;
+    // (undocumented)
+    getColor(): any;
+    getContours(): IContour[];
+    getFlatPointsArray(): Point3[];
+    getNumberOfContours(): number;
+    getNumberOfPointsArray(): number[];
+    getNumberOfPointsInAContour(contourIndex: number): number;
+    getPointsInContour(contourIndex: number): Point3[];
+    // (undocumented)
+    getSegmentIndex(): number;
+    // (undocumented)
+    getSizeInBytes(): number;
+    getTotalNumberOfPoints(): number;
+    // (undocumented)
+    readonly id: string;
+    // (undocumented)
+    readonly sizeInBytes: number;
+}
+
+// @public
+interface IDynamicImageVolume extends IImageVolume {
+    getScalarDataArrays(): VolumeScalarData[];
+    get numTimePoints(): number;
+    get timePointIndex(): number;
+    set timePointIndex(newTimePointIndex: number);
+}
+
 // @public
 interface IEnabledElement {
     FrameOfReferenceUID: string;
@@ -526,6 +689,25 @@ interface IEnabledElement {
     renderingEngineId: string;
     viewport: IStackViewport | IVolumeViewport;
     viewportId: string;
+}
+
+// @public (undocumented)
+interface IGeometry {
+    // (undocumented)
+    data: IContourSet;
+    // (undocumented)
+    id: string;
+    // (undocumented)
+    sizeInBytes: number;
+    // (undocumented)
+    type: GeometryType;
+}
+
+// @public (undocumented)
+interface IGeometryLoadObject {
+    cancelFn?: () => void;
+    decache?: () => void;
+    promise: Promise<IGeometry>;
 }
 
 // @public
@@ -544,7 +726,7 @@ interface IImage {
     columns: number;
     // (undocumented)
     getCanvas: () => HTMLCanvasElement;
-    getPixelData: () => Array<number>;
+    getPixelData: () => PixelDataTypedArray;
     height: number;
     imageId: string;
     intercept: number;
@@ -556,8 +738,8 @@ interface IImage {
     modalityLUT?: CPUFallbackLUT;
     numComps: number;
     preScale?: {
-        scaled: boolean;
-        scalingParameters: {
+        scaled?: boolean;
+        scalingParameters?: {
             modality?: string;
             rescaleSlope?: number;
             rescaleIntercept?: number;
@@ -595,6 +777,7 @@ interface IImage {
         lastRenderTime?: number;
     };
     voiLUT?: CPUFallbackLUT;
+    voiLUTFunction: string;
     width: number;
     windowCenter: number[] | number;
     windowWidth: number[] | number;
@@ -617,7 +800,7 @@ interface IImageData {
             suvbw?: number;
         };
     };
-    scalarData: Float32Array;
+    scalarData: Float32Array | Uint16Array | Uint8Array | Int16Array;
     scaling?: Scaling;
     spacing: Point3;
 }
@@ -637,18 +820,22 @@ interface IImageVolume {
     imageId: string,
     imageIdIndex: number
     ) => IImageLoadObject;
+    destroy(): void;
     dimensions: Point3;
     direction: Mat3;
+    getImageIdIndex(imageId: string): number;
+    getImageURIIndex(imageURI: string): number;
+    getScalarData(): VolumeScalarData;
     hasPixelSpacing: boolean;
     imageData?: vtkImageData;
-    imageIds?: Array<string>;
+    imageIds: Array<string>;
+    isDynamicVolume(): boolean;
     isPrescaled: boolean;
     loadStatus?: Record<string, any>;
     metadata: Metadata;
     numVoxels: number;
     origin: Point3;
     referencedVolumeId?: string;
-    scalarData: any;
     scaling?: {
         PET?: {
             SUVlbmFactor?: number;
@@ -719,6 +906,58 @@ type ImageLoadProgressEventDetail = {
     total: number;
     percent: number;
 };
+
+// @public (undocumented)
+interface ImagePixelModule {
+    // (undocumented)
+    bitsAllocated: number;
+    // (undocumented)
+    bitsStored: number;
+    // (undocumented)
+    highBit: number;
+    // (undocumented)
+    modality: string;
+    // (undocumented)
+    photometricInterpretation: string;
+    // (undocumented)
+    pixelRepresentation: string;
+    // (undocumented)
+    samplesPerPixel: number;
+    // (undocumented)
+    voiLUTFunction: VOILUTFunctionType;
+    // (undocumented)
+    windowCenter: number | number[];
+    // (undocumented)
+    windowWidth: number | number[];
+}
+
+// @public (undocumented)
+interface ImagePlaneModule {
+    // (undocumented)
+    columnCosines?: Point3;
+    // (undocumented)
+    columnPixelSpacing?: number;
+    // (undocumented)
+    columns: number;
+    // (undocumented)
+    frameOfReferenceUID: string;
+    // (undocumented)
+    imageOrientationPatient?: Float32Array;
+    // (undocumented)
+    imagePositionPatient?: Point3;
+    // (undocumented)
+    pixelSpacing?: Point2;
+    // (undocumented)
+    rowCosines?: Point3;
+    // (undocumented)
+    rowPixelSpacing?: number;
+    // (undocumented)
+    rows: number;
+    // (undocumented)
+    sliceLocation?: number;
+    // (undocumented)
+    sliceThickness?: number;
+}
 
 // @public
 type ImageRenderedEvent = CustomEvent_2<ElementEnabledEventDetail>;
@@ -832,6 +1071,7 @@ interface IStackViewport extends IViewport {
         renderingEngineId: string;
     };
     getCamera(): ICamera;
+    getCornerstoneImage: () => IImage;
     getCurrentImageId: () => string;
     getCurrentImageIdIndex: () => number;
     getFrameOfReferenceUID: () => string;
@@ -848,7 +1088,7 @@ interface IStackViewport extends IViewport {
     resize: () => void;
     scaling: Scaling;
     setCamera(cameraInterface: ICamera): void;
-    setColormap(colormap: CPUFallbackColormapData): void;
+    setColormap(colormap: CPUFallbackColormapData | ColormapRegistration): void;
     setImageIdIndex(imageIdIndex: number): Promise<string>;
     setProperties(
         { voiRange, invert, interpolationType, rotation }: StackViewportProperties,
@@ -872,9 +1112,11 @@ interface IStreamingImageVolume extends ImageVolume {
 // @public (undocumented)
 interface IStreamingVolumeProperties {
     imageIds: Array<string>;
+
     loadStatus: {
         loaded: boolean;
         loading: boolean;
+        cancelled: boolean;
         cachedFrames: Array<boolean>;
         callbacks: Array<() => void>;
     };
@@ -899,20 +1141,28 @@ interface IViewport {
     // (undocumented)
     _getCorners(bounds: Array<number>): Array<number>[];
     getDefaultActor(): ActorEntry;
+    getDisplayArea(): DisplayArea | undefined;
     getFrameOfReferenceUID: () => string;
     getPan(): Point2;
     getRenderer(): void;
     getRenderingEngine(): any;
+    getRotation: () => number;
     getZoom(): number;
     id: string;
     isDisabled: boolean;
     options: ViewportInputOptions;
+    removeActors(actorUIDs: Array<string>): void;
     removeAllActors(): void;
     render(): void;
     renderingEngineId: string;
     reset(immediate: boolean): void;
     setActors(actors: Array<ActorEntry>): void;
     setCamera(cameraInterface: ICamera, storeAsInitialCamera?: boolean): void;
+    setDisplayArea(
+    displayArea: DisplayArea,
+    callResetCamera?: boolean,
+    suppressEvents?: boolean
+    );
     setOptions(options: ViewportInputOptions, immediate: boolean): void;
     setPan(pan: Point2, storeAsInitialCamera?: boolean);
     setZoom(zoom: number, storeAsInitialCamera?: boolean);
@@ -922,6 +1172,8 @@ interface IViewport {
     sx: number;
     sy: number;
     type: ViewportType;
+    // (undocumented)
+    updateRenderingPipeline: () => void;
     worldToCanvas: (worldPos: Point3) => Point2;
 }
 
@@ -941,7 +1193,7 @@ interface IVolume {
     metadata: Metadata;
     origin: Point3;
     referencedVolumeId?: string;
-    scalarData: Float32Array | Uint8Array;
+    scalarData: VolumeScalarData | Array<VolumeScalarData>;
     scaling?: {
         PET?: {
             // @TODO: Do these values exist?
@@ -1001,8 +1253,7 @@ interface IVolumeViewport extends IViewport {
     getFrameOfReferenceUID: () => string;
     getImageData(volumeId?: string): IImageData | undefined;
     getIntensityFromWorld(point: Point3): number;
-    // (undocumented)
-    getProperties: () => any;
+    getProperties: () => VolumeViewportProperties;
     getSlabThickness(): number;
     hasImageURI: (imageURI: string) => boolean;
     hasVolumeId: (volumeId: string) => boolean;
@@ -1067,6 +1318,7 @@ type Metadata = {
     Columns: number;
     Rows: number;
     voiLut: Array<VOI>;
+    VOILUTFunction: string;
 };
 
 // @public (undocumented)
@@ -1086,6 +1338,15 @@ type OrientationVectors = {
     viewPlaneNormal: Point3;
     viewUp: Point3;
 };
+
+// @public (undocumented)
+type PixelDataTypedArray =
+| Float32Array
+| Int16Array
+| Uint16Array
+| Uint8Array
+| Int8Array
+| Uint8ClampedArray;
 
 // @public
 type Plane = [number, number, number, number];
@@ -1114,7 +1375,13 @@ type PreStackNewImageEventDetail = {
 type PTScaling = {
     suvbwToSuvlbm?: number;
     suvbwToSuvbsa?: number;
+    suvbw?: number;
+    suvlbm?: number;
+    suvbsa?: number;
 };
+
+// @public (undocumented)
+type PublicContourSetData = ContourSetData;
 
 // @public
 type PublicViewportInput = {
@@ -1131,6 +1398,9 @@ enum RequestType {
     Thumbnail = 'thumbnail',
 }
 
+// @public
+type RGB = [number, number, number];
+
 // @public (undocumented)
 type Scaling = {
     PET?: PTScaling;
@@ -1145,6 +1415,15 @@ type ScalingParameters = {
     suvlbm?: number;
     suvbsa?: number;
 };
+
+// @public
+enum SharedArrayBufferModes {
+    AUTO = 'auto',
+    // (undocumented)
+    FALSE = 'false',
+    // (undocumented)
+    TRUE = 'true',
+}
 
 // @public
 type StackNewImageEvent = CustomEvent_2<StackNewImageEventDetail>;
@@ -1171,12 +1450,11 @@ type StackViewportNewStackEventDetail = {
 };
 
 // @public
-type StackViewportProperties = {
-    voiRange?: VOIRange;
-    invert?: boolean;
+type StackViewportProperties = ViewportProperties & {
     interpolationType?: InterpolationType;
     rotation?: number;
     suppressEvents?: boolean;
+    isComputedVOI?: boolean;
 };
 
 // @public (undocumented)
@@ -1190,16 +1468,24 @@ type StackViewportScrollEventDetail = {
 };
 
 // @public (undocumented)
-export class StreamingImageVolume extends ImageVolume {
+export class StreamingDynamicImageVolume extends BaseStreamingImageVolume implements Types.IDynamicImageVolume {
     constructor(imageVolumeProperties: Types.IVolume, streamingProperties: Types.IStreamingVolumeProperties);
     // (undocumented)
-    cancelLoading: () => void;
+    getImageLoadRequests: (priority: number) => any[];
     // (undocumented)
-    clearLoadCallbacks(): void;
+    getScalarData(): Types.VolumeScalarData;
     // (undocumented)
-    convertToCornerstoneImage(imageId: string, imageIdIndex: number): Types.IImageLoadObject;
+    isDynamicVolume(): boolean;
     // (undocumented)
-    decache(completelyRemove?: boolean): void;
+    get numTimePoints(): number;
+    // (undocumented)
+    get timePointIndex(): number;
+    set timePointIndex(newTimePointIndex: number);
+}
+
+// @public (undocumented)
+export class StreamingImageVolume extends BaseStreamingImageVolume {
+    constructor(imageVolumeProperties: Types.IVolume, streamingProperties: Types.IStreamingVolumeProperties);
     // (undocumented)
     getImageLoadRequests: (priority: number) => {
         callLoadImage: (imageId: any, imageIdIndex: any, options: any) => Promise<void>;
@@ -1207,7 +1493,7 @@ export class StreamingImageVolume extends ImageVolume {
         imageIdIndex: number;
         options: {
             targetBuffer: {
-                arrayBuffer: ArrayBufferLike;
+                arrayBuffer: SharedArrayBuffer;
                 offset: number;
                 length: number;
                 type: any;
@@ -1219,20 +1505,13 @@ export class StreamingImageVolume extends ImageVolume {
             };
         };
         priority: number;
-        requestType: Enums.RequestType;
+        requestType: default_2;
         additionalDetails: {
             volumeId: string;
         };
     }[];
     // (undocumented)
-    load: (callback: (...args: unknown[]) => void, priority?: number) => void;
-    // (undocumented)
-    loadStatus: {
-        loaded: boolean;
-        loading: boolean;
-        cachedFrames: Array<boolean>;
-        callbacks: Array<(...args: unknown[]) => void>;
-    };
+    getScalarData(): Types.VolumeScalarData;
 }
 
 // @public
@@ -1240,9 +1519,11 @@ type TransformMatrix2D = [number, number, number, number, number, number];
 
 // @public
 type ViewportInputOptions = {
-    background?: [number, number, number];
+    background?: RGB;
     orientation?: OrientationAxis | OrientationVectors;
+    displayArea?: DisplayArea;
     suppressEvents?: boolean;
+    parallelProjection?: boolean;
 };
 
 // @public (undocumented)
@@ -1270,6 +1551,13 @@ interface ViewportPreset {
 }
 
 // @public
+type ViewportProperties = {
+    voiRange?: VOIRange;
+    VOILUTFunction?: VOILUTFunctionType;
+    invert?: boolean;
+};
+
+// @public
 enum ViewportType {
     ORTHOGRAPHIC = 'orthographic',
     PERSPECTIVE = 'perspective',
@@ -1285,6 +1573,15 @@ type VOI = {
 };
 
 // @public
+enum VOILUTFunctionType {
+    // (undocumented)
+    LINEAR = 'LINEAR',
+    // (undocumented)
+    SAMPLED_SIGMOID = 'SIGMOID', // SIGMOID is sampled in 1024 even steps so we call it SAMPLED_SIGMOID
+    // EXACT_LINEAR = 'EXACT_LINEAR', TODO: Add EXACT_LINEAR option from DICOM NEMA
+}
+
+// @public
 type VoiModifiedEvent = CustomEvent_2<VoiModifiedEventDetail>;
 
 // @public
@@ -1292,6 +1589,8 @@ type VoiModifiedEventDetail = {
     viewportId: string;
     range: VOIRange;
     volumeId?: string;
+    VOILUTFunction?: VOILUTFunctionType;
+    invert?: boolean;
 };
 
 // @public (undocumented)
@@ -1365,9 +1664,13 @@ type VolumeNewImageEventDetail = {
     renderingEngineId: string;
 };
 
+// @public (undocumented)
+type VolumeScalarData = Float32Array | Uint8Array | Uint16Array | Int16Array;
+
 // @public
-type VolumeViewportProperties = {
-    voiRange?: VOIRange;
+type VolumeViewportProperties = ViewportProperties & {
+    colormap?: ColormapPublic;
+    preset?: string;
 };
 
 // (No @packageDocumentation comment for this package)

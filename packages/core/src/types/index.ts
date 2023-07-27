@@ -1,19 +1,25 @@
 // @see: https://www.typescriptlang.org/docs/handbook/release-notes/typescript-3-8.html#-type-only-imports-and-export
-
+import type Cornerstone3DConfig from './Cornerstone3DConfig';
 import type ICamera from './ICamera';
 import type IEnabledElement from './IEnabledElement';
 import type ICache from './ICache';
-import type IVolume from './IVolume';
+import type { IVolume, VolumeScalarData } from './IVolume';
 import type { VOI, VOIRange } from './voi';
+import type DisplayArea from './displayArea';
 import type ImageLoaderFn from './ImageLoaderFn';
 import type IImageVolume from './IImageVolume';
+import type IDynamicImageVolume from './IDynamicImageVolume';
 import type VolumeLoaderFn from './VolumeLoaderFn';
 import type IRegisterImageLoader from './IRegisterImageLoader';
 import type IStreamingVolumeProperties from './IStreamingVolumeProperties';
 import type CustomEventType from './CustomEventType';
 import type { IViewport, PublicViewportInput } from './IViewport';
 import type { VolumeActor, Actor, ActorEntry } from './IActor';
-import type { IImageLoadObject, IVolumeLoadObject } from './ILoadObject';
+import type {
+  IImageLoadObject,
+  IVolumeLoadObject,
+  IGeometryLoadObject,
+} from './ILoadObject';
 import type Metadata from './Metadata';
 import type OrientationVectors from './OrientationVectors';
 import type Point2 from './Point2';
@@ -59,16 +65,36 @@ import type * as EventTypes from './EventTypes';
 import type IRenderingEngine from './IRenderingEngine';
 import type ActorSliceRange from './ActorSliceRange';
 import type ImageSliceData from './ImageSliceData';
+import type IGeometry from './IGeometry';
+import type {
+  PublicContourSetData,
+  ContourSetData,
+  ContourData,
+} from './ContourData';
+import type ICachedGeometry from './ICachedGeometry';
+import type { IContourSet } from './IContourSet';
+import type { IContour } from './IContour';
+import type RGB from './RGB';
+import { ColormapPublic, ColormapRegistration } from './Colormap';
+import type { ViewportProperties } from './ViewportProperties';
+import type { PixelDataTypedArray } from './PixelDataTypedArray';
+import type { ImagePixelModule } from './ImagePixelModule';
+import type { ImagePlaneModule } from './ImagePlaneModule';
 
 export type {
+  // config
+  Cornerstone3DConfig,
+  //
   ICamera,
   IStackViewport,
   IVolumeViewport,
   IEnabledElement,
   ICache,
   IVolume,
+  VolumeScalarData,
   IViewportId,
   IImageVolume,
+  IDynamicImageVolume,
   IRenderingEngine,
   ScalingParameters,
   PTScaling,
@@ -86,6 +112,7 @@ export type {
   IViewport,
   StackViewportProperties,
   VolumeViewportProperties,
+  ViewportProperties,
   PublicViewportInput,
   VolumeActor,
   Actor,
@@ -106,6 +133,7 @@ export type {
   ViewportInputOptions,
   VOIRange,
   VOI,
+  DisplayArea,
   FlipDirection,
   ICachedImage,
   ICachedVolume,
@@ -125,4 +153,22 @@ export type {
   CustomEventType,
   ActorSliceRange,
   ImageSliceData,
+  // Geometry
+  IGeometry,
+  IGeometryLoadObject,
+  ICachedGeometry,
+  // Contour
+  PublicContourSetData,
+  ContourSetData,
+  ContourData,
+  IContourSet,
+  IContour,
+  // Color
+  RGB,
+  ColormapPublic,
+  ColormapRegistration,
+  // PixelData
+  PixelDataTypedArray,
+  ImagePixelModule,
+  ImagePlaneModule,
 };

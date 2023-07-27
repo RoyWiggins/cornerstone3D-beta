@@ -2,12 +2,14 @@ import { Types } from '@cornerstonejs/core';
 import {
   mouseEventListeners,
   wheelEventListener,
+  touchEventListeners,
   keyEventListener,
 } from '../eventListeners';
 import {
   imageRenderedEventDispatcher,
   cameraModifiedEventDispatcher,
   mouseToolEventDispatcher,
+  touchToolEventDispatcher,
   keyboardToolEventDispatcher,
   imageSpacingCalibratedEventDispatcher,
 } from '../eventDispatchers';
@@ -25,7 +27,7 @@ export default function addEnabledElement(
   evt: Types.EventTypes.ElementEnabledEvent
 ): void {
   const { element, viewportId } = evt.detail;
-  const svgLayer = _createSvgAnnotationLayer();
+  const svgLayer = _createSvgAnnotationLayer(viewportId);
 
   // Reset/Create svgNodeCache for element
   _setSvgNodeCache(element);
@@ -37,6 +39,7 @@ export default function addEnabledElement(
   // Listeners
   mouseEventListeners.enable(element);
   wheelEventListener.enable(element);
+  touchEventListeners.enable(element);
   keyEventListener.enable(element);
 
   // Dispatchers: renderer
@@ -46,7 +49,7 @@ export default function addEnabledElement(
   // Dispatchers: interaction
   mouseToolEventDispatcher.enable(element);
   keyboardToolEventDispatcher.enable(element);
-  // touchToolEventDispatcher.enable(enabledElement);
+  touchToolEventDispatcher.enable(element);
 
   // labelmap
   // State
@@ -56,12 +59,13 @@ export default function addEnabledElement(
 /**
  *
  */
-function _createSvgAnnotationLayer(): SVGElement {
+function _createSvgAnnotationLayer(viewportId: string): SVGElement {
   const svgns = 'http://www.w3.org/2000/svg';
   const svgLayer = document.createElementNS(svgns, 'svg');
 
+  const svgLayerId = `svg-layer-${viewportId}`;
   svgLayer.classList.add('svg-layer');
-  svgLayer.setAttribute('id', 'svg-layer');
+  svgLayer.setAttribute('id', svgLayerId);
   svgLayer.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
   svgLayer.style.width = '100%';
   svgLayer.style.height = '100%';
@@ -78,7 +82,7 @@ function _createSvgAnnotationLayer(): SVGElement {
   const feBlend = document.createElementNS(svgns, 'feBlend');
 
   //
-  filter.setAttribute('id', 'shadow');
+  filter.setAttribute('id', `shadow-${svgLayerId}`);
   filter.setAttribute('filterUnits', 'userSpaceOnUse');
 
   //

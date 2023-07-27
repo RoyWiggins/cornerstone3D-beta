@@ -2,10 +2,13 @@ import {
   ICache,
   IImage,
   IImageVolume,
+  IGeometry,
   IImageLoadObject,
   IVolumeLoadObject,
+  IGeometryLoadObject,
   ICachedImage,
   ICachedVolume,
+  ICachedGeometry,
   EventTypes,
 } from '../types';
 import { triggerEvent, imageIdToURI } from '../utilities';
@@ -17,13 +20,19 @@ const MAX_CACHE_SIZE_1GB = 1073741824;
 class Cache implements ICache {
   private readonly _imageCache: Map<string, ICachedImage>; // volatile space
   private readonly _volumeCache: Map<string, ICachedVolume>; // non-volatile space
+  // Todo: contour for now, but will be used for surface, etc.
+  private readonly _geometryCache: Map<string, ICachedGeometry>;
   private _imageCacheSize: number;
   private _volumeCacheSize: number;
   private _maxCacheSize: number;
 
   constructor() {
+    // used to store image data (2d)
     this._imageCache = new Map();
+    // used to store volume data (3d)
     this._volumeCache = new Map();
+    // used to store object data (contour, surface, etc.)
+    this._geometryCache = new Map();
     this._imageCacheSize = 0;
     this._volumeCacheSize = 0;
     this._maxCacheSize = MAX_CACHE_SIZE_1GB; // Default 1GB
@@ -124,7 +133,7 @@ class Cache implements ICache {
     }
 
     if (volume.imageData) {
-      volume.imageData = null;
+      volume.imageData.delete();
     }
 
     if (volumeLoadObject.cancelFn) {
@@ -352,7 +361,7 @@ class Cache implements ICache {
           return;
         }
 
-        if (image.sizeInBytes === undefined) {
+        if (Number.isNaN(image.sizeInBytes)) {
           throw new Error(
             'putImageLoadObject: image.sizeInBytes must not be undefined'
           );
@@ -446,22 +455,16 @@ class Cache implements ICache {
 
     for (const volumeId of volumeIds) {
       const cachedVolume = this._volumeCache.get(volumeId);
+      const { volume } = cachedVolume;
 
-      if (!cachedVolume.volume) {
+      if (!volume?.imageIds?.length) {
         return;
       }
 
-      let { imageIds } = cachedVolume.volume;
+      const imageIdIndex = volume.getImageURIIndex(imageIdToUse);
 
-      if (!imageIds || imageIds.length === 0) {
-        continue;
-      }
-
-      imageIds = imageIds.map((id) => imageIdToURI(id));
-
-      const imageIdIndex = imageIds.indexOf(imageIdToUse);
       if (imageIdIndex > -1) {
-        return { volume: cachedVolume.volume, imageIdIndex };
+        return { volume, imageIdIndex };
       }
     }
   }
@@ -554,7 +557,7 @@ class Cache implements ICache {
           return;
         }
 
-        if (volume.sizeInBytes === undefined) {
+        if (Number.isNaN(volume.sizeInBytes)) {
           throw new Error(
             'putVolumeLoadObject: volume.sizeInBytes must not be undefined'
           );
@@ -615,6 +618,23 @@ class Cache implements ICache {
     cachedVolume.timeStamp = Date.now();
 
     return cachedVolume.volumeLoadObject;
+  };
+
+  public getGeometry = (geometryId: string): IGeometry => {
+    if (geometryId == null) {
+      throw new Error('getGeometry: geometryId must not be undefined');
+    }
+
+    const cachedGeometry = this._geometryCache.get(geometryId);
+
+    if (cachedGeometry === undefined) {
+      return;
+    }
+
+    // Bump time stamp for cached geometry (not used for anything for now)
+    cachedGeometry.timeStamp = Date.now();
+
+    return cachedGeometry.geometry;
   };
 
   /**
@@ -700,6 +720,74 @@ class Cache implements ICache {
 
     triggerEvent(eventTarget, Events.VOLUME_CACHE_VOLUME_REMOVED, eventDetails);
     this._decacheVolume(volumeId);
+  };
+
+  putGeometryLoadObject = (
+    geometryId: string,
+    geometryLoadObject: IGeometryLoadObject
+  ): Promise<void> => {
+    if (geometryId == undefined) {
+      throw new Error(
+        'putGeometryLoadObject: geometryId must not be undefined'
+      );
+    }
+
+    if (this._geometryCache.has(geometryId)) {
+      throw new Error(
+        'putGeometryLoadObject: geometryId already present in geometryCache'
+      );
+    }
+
+    const cachedGeometry: ICachedGeometry = {
+      geometryId,
+      geometryLoadObject,
+      loaded: false,
+      timeStamp: Date.now(),
+      sizeInBytes: 0,
+    };
+
+    this._geometryCache.set(geometryId, cachedGeometry);
+
+    return geometryLoadObject.promise
+      .then((geometry: IGeometry) => {
+        if (!this._geometryCache.has(geometryId)) {
+          console.warn(
+            'putGeometryLoadObject: geometryId was removed from geometryCache'
+          );
+          return;
+        }
+
+        if (Number.isNaN(geometry.sizeInBytes)) {
+          throw new Error(
+            'putGeometryLoadObject: geometry.sizeInBytes is not a number'
+          );
+        }
+
+        // Todo: fix is cacheable
+
+        cachedGeometry.loaded = true;
+        cachedGeometry.geometry = geometry;
+        cachedGeometry.sizeInBytes = geometry.sizeInBytes;
+
+        // this._incrementGeometryCacheSize(geometry.sizeInBytes);
+
+        const eventDetails = {
+          geometry,
+          geometryId,
+        };
+
+        triggerEvent(
+          eventTarget,
+          Events.GEOMETRY_CACHE_GEOMETRY_ADDED,
+          eventDetails
+        );
+
+        return;
+      })
+      .catch((error) => {
+        this._geometryCache.delete(geometryId);
+        throw error;
+      });
   };
 
   /**

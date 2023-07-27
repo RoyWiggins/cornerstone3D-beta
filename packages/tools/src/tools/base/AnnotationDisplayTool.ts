@@ -10,7 +10,7 @@ import type { Types } from '@cornerstonejs/core';
 import { vec4 } from 'gl-matrix';
 
 import BaseTool from './BaseTool';
-import { getViewportSpecificAnnotationManager } from '../../stateManagement/annotation/annotationState';
+import { getAnnotationManager } from '../../stateManagement/annotation/annotationState';
 import { Annotation, Annotations, SVGDrawingHelper } from '../../types';
 import triggerAnnotationRender from '../../utilities/triggerAnnotationRender';
 import filterAnnotationsForDisplay from '../../utilities/planar/filterAnnotationsForDisplay';
@@ -89,7 +89,7 @@ abstract class AnnotationDisplayTool extends BaseTool {
       columnScale,
       imageId,
       imageData: calibratedImageData,
-      worldToIndex: noneCalibratedWorldToIndex,
+      worldToIndex: nonCalibratedWorldToIndex,
     } = evt.detail;
 
     const { viewport } = getEnabledElement(element);
@@ -101,13 +101,13 @@ abstract class AnnotationDisplayTool extends BaseTool {
     const calibratedIndexToWorld = calibratedImageData.getIndexToWorld();
 
     const imageURI = utilities.imageIdToURI(imageId);
-    const stateManager = getViewportSpecificAnnotationManager(element);
+    const stateManager = getAnnotationManager();
     const framesOfReference = stateManager.getFramesOfReference();
 
     // For each frame Of Reference
     framesOfReference.forEach((frameOfReference) => {
       const frameOfReferenceSpecificAnnotations =
-        stateManager.getFrameOfReferenceAnnotations(frameOfReference);
+        stateManager.getAnnotations(frameOfReference);
 
       const toolSpecificAnnotations =
         frameOfReferenceSpecificAnnotations[this.getToolName()];
@@ -135,13 +135,13 @@ abstract class AnnotationDisplayTool extends BaseTool {
           // corresponding point on the calibrated image world.
           annotation.data.handles.points = annotation.data.handles.points.map(
             (point) => {
-              const p = vec4.fromValues(...point, 1);
+              const p = vec4.fromValues(...(point as Types.Point3), 1);
               const pCalibrated = vec4.fromValues(0, 0, 0, 1);
               const nonCalibratedIndexVec4 = vec4.create();
               vec4.transformMat4(
                 nonCalibratedIndexVec4,
                 p,
-                noneCalibratedWorldToIndex
+                nonCalibratedWorldToIndex
               );
               const calibratedIndex = [
                 columnScale * nonCalibratedIndexVec4[0],
@@ -189,8 +189,7 @@ abstract class AnnotationDisplayTool extends BaseTool {
       referencedImageId = utilities.getClosestImageId(
         imageVolume,
         worldPos,
-        viewPlaneNormal,
-        viewUp
+        viewPlaneNormal
       );
     }
 

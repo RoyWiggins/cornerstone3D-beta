@@ -29,6 +29,7 @@ import {
   WindowLevelTool,
   ZoomTool,
   StackScrollTool,
+  PlanarRotateTool,
   StackScrollMouseWheelTool,
   VolumeRotateMouseWheelTool,
   MIPJumpToClickTool,
@@ -37,6 +38,7 @@ import {
   RectangleROITool,
   EllipticalROITool,
   GravisROITool,
+  CircleROITool,
   BidirectionalTool,
   PlanarFreehandROITool,
   ArrowAnnotateTool,
@@ -50,10 +52,12 @@ import {
   SegmentationDisplayTool,
   BrushTool,
   AngleTool,
+  CobbAngleTool,
   MagnifyTool,
   ReferenceCursors,
   ReferenceLines,
   PaintFillTool,
+  ScaleOverlayTool,
 } from './tools';
 
 import * as Enums from './enums';
@@ -75,6 +79,7 @@ export {
   WindowLevelTool,
   ZoomTool,
   StackScrollTool,
+  PlanarRotateTool,
   StackScrollMouseWheelTool,
   VolumeRotateMouseWheelTool,
   MIPJumpToClickTool,
@@ -86,13 +91,16 @@ export {
   RectangleROITool,
   EllipticalROITool,
   GravisROITool,
+  CircleROITool,
   BidirectionalTool,
   PlanarFreehandROITool,
   ArrowAnnotateTool,
   AngleTool,
+  CobbAngleTool,
   MagnifyTool,
   ReferenceCursors,
   ReferenceLines,
+  ScaleOverlayTool,
   // Segmentation Display
   SegmentationDisplayTool,
   // Segmentation Editing Tools

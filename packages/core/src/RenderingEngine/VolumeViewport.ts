@@ -1,18 +1,19 @@
-import { vec3 } from 'gl-matrix';
 import vtkPlane from '@kitware/vtk.js/Common/DataModel/Plane';
+import { vec3 } from 'gl-matrix';
 
 import cache from '../cache';
-import transformWorldToIndex from '../utilities/transformWorldToIndex';
+import { EPSILON, MPR_CAMERA_VALUES, RENDERING_DEFAULTS } from '../constants';
+import { BlendModes, OrientationAxis } from '../enums';
 import type {
-  Point3,
-  IVolumeInput,
   ActorEntry,
   IImageVolume,
+  IVolumeInput,
   OrientationVectors,
+  Point3,
 } from '../types';
 import type { ViewportInput } from '../types/IViewport';
-import { RENDERING_DEFAULTS, MPR_CAMERA_VALUES, EPSILON } from '../constants';
-import { BlendModes, OrientationAxis } from '../enums';
+import { actorIsA, getClosestImageId } from '../utilities';
+import transformWorldToIndex from '../utilities/transformWorldToIndex';
 import BaseVolumeViewport from './BaseVolumeViewport';
 
 /**
@@ -34,17 +35,7 @@ class VolumeViewport extends BaseVolumeViewport {
     // if the camera is set to be acquisition axis then we need to skip
     // it for now until the volume is set
     if (orientation && orientation !== OrientationAxis.ACQUISITION) {
-      const { viewPlaneNormal, viewUp } =
-        this._getOrientationVectors(orientation);
-      const camera = this.getVtkActiveCamera();
-      camera.setDirectionOfProjection(
-        -viewPlaneNormal[0],
-        -viewPlaneNormal[1],
-        -viewPlaneNormal[2]
-      );
-      camera.setViewUpFrom(viewUp);
-
-      this.resetCamera();
+      this.applyViewOrientation(orientation);
       return;
     }
 
@@ -143,31 +134,6 @@ class VolumeViewport extends BaseVolumeViewport {
     }
   }
 
-  private _getOrientationVectors(
-    orientation: OrientationAxis | OrientationVectors
-  ): OrientationVectors {
-    if (typeof orientation === 'object') {
-      if (orientation.viewPlaneNormal && orientation.viewUp) {
-        return orientation;
-      } else {
-        throw new Error(
-          'Invalid orientation object. It must contain viewPlaneNormal and viewUp'
-        );
-      }
-    } else if (
-      typeof orientation === 'string' &&
-      MPR_CAMERA_VALUES[orientation]
-    ) {
-      return MPR_CAMERA_VALUES[orientation];
-    } else {
-      throw new Error(
-        `Invalid orientation: ${orientation}. Valid orientations are: ${Object.keys(
-          MPR_CAMERA_VALUES
-        ).join(', ')}`
-      );
-    }
-  }
-
   private _getAcquisitionPlaneOrientation(): OrientationVectors {
     const actorEntry = this.getDefaultActor();
 
@@ -223,11 +189,12 @@ class VolumeViewport extends BaseVolumeViewport {
    * @returns The intensity value of the voxel at the given point.
    */
   public getIntensityFromWorld(point: Point3): number {
-    const { actor, uid } = this.getDefaultActor();
-    if (!actor.isA('vtkVolume')) {
+    const actorEntry = this.getDefaultActor();
+    if (!actorIsA(actorEntry, 'vtkVolume')) {
       return;
     }
 
+    const { actor, uid } = actorEntry;
     const imageData = actor.getMapper().getInputData();
 
     const volume = cache.getVolume(uid);
@@ -240,7 +207,7 @@ class VolumeViewport extends BaseVolumeViewport {
       index[1] * dimensions[0] +
       index[0];
 
-    return volume.scalarData[voxelIndex];
+    return volume.getScalarData()[voxelIndex];
   }
 
   public setBlendMode(
@@ -278,33 +245,24 @@ class VolumeViewport extends BaseVolumeViewport {
     resetToCenter = true
   ): boolean {
     super.resetCamera(resetPan, resetZoom, resetToCenter);
-    const activeCamera = this.getVtkActiveCamera();
-    // Set large numbers to ensure everything is always rendered
-    if (activeCamera.getParallelProjection()) {
-      activeCamera.setClippingRange(
-        -RENDERING_DEFAULTS.MAXIMUM_RAY_DISTANCE,
-        RENDERING_DEFAULTS.MAXIMUM_RAY_DISTANCE
-      );
-    } else {
-      activeCamera.setClippingRange(
-        RENDERING_DEFAULTS.MINIMUM_SLAB_THICKNESS,
-        RENDERING_DEFAULTS.MAXIMUM_RAY_DISTANCE
-      );
-    }
 
+    this.resetVolumeViewportClippingRange();
+
+    const activeCamera = this.getVtkActiveCamera();
     const viewPlaneNormal = <Point3>activeCamera.getViewPlaneNormal();
     const focalPoint = <Point3>activeCamera.getFocalPoint();
 
+    // always add clipping planes for the volume viewport. If a use case
+    // arises where we don't want clipping planes, you should use the volume_3d
+    // viewport instead.
     const actorEntries = this.getActors();
     actorEntries.forEach((actorEntry) => {
-      // we assume that the first two clipping plane of the mapper are always
-      // the 'camera' clipping. Add clipping planes only if the actor is
-      // a vtkVolume
-      if (!actorEntry.actor || !actorEntry.actor.isA('vtkVolume')) {
+      if (!actorEntry.actor) {
         return;
       }
       const mapper = actorEntry.actor.getMapper();
       const vtkPlanes = mapper.getClippingPlanes();
+
       if (vtkPlanes.length === 0) {
         const clipPlane1 = vtkPlane.newInstance();
         const clipPlane2 = vtkPlane.newInstance();
@@ -350,9 +308,7 @@ class VolumeViewport extends BaseVolumeViewport {
     }
 
     actorEntries.forEach((actorEntry) => {
-      const { actor } = actorEntry;
-
-      if (actor.isA('vtkVolume')) {
+      if (actorIsA(actorEntry, 'vtkVolume')) {
         actorEntry.slabThickness = slabThickness;
       }
     });
@@ -380,70 +336,18 @@ class VolumeViewport extends BaseVolumeViewport {
   }
 
   /**
-   * Uses viewport camera and volume actor to decide if the viewport
-   * is looking at the volume in the direction of acquisition (imageIds).
-   * If so, it uses the origin and focalPoint to calculate the slice index.
+   * Uses the origin and focalPoint to calculate the slice index.
    * Todo: This only works if the imageIds are properly sorted
    *
    * @returns The slice index
    */
   public getCurrentImageIdIndex = (): number | undefined => {
-    return this._getImageIdIndex();
-  };
-
-  /**
-   * Uses viewport camera and volume actor to decide if the viewport
-   * is looking at the volume in the direction of acquisition (imageIds).
-   * If so, it uses the origin and focalPoint to find which imageId is
-   * currently being viewed.
-   *
-   * @returns ImageId
-   */
-  public getCurrentImageId = (): string | undefined => {
-    const index = this._getImageIdIndex();
-
-    if (isNaN(index)) {
-      return;
-    }
-
-    const { uid, actor } = this.getDefaultActor();
-    if (!actor.isA('vtkVolume')) {
-      return;
-    }
-
-    const volume = cache.getVolume(uid);
-
-    if (!volume) {
-      return;
-    }
-
-    const imageIds = volume.imageIds;
-
-    return imageIds[index];
-  };
-
-  private _getImageIdIndex = () => {
     const { viewPlaneNormal, focalPoint } = this.getCamera();
 
     // Todo: handle scenario of fusion of multiple volumes
     // we cannot only check number of actors, because we might have
     // segmentations ...
-    const { direction, origin, spacing } = this.getImageData();
-
-    // get the last 3 components of the direction - axis normal
-    const dir = direction.slice(direction.length - 3);
-
-    const dot = Math.abs(
-      dir[0] * viewPlaneNormal[0] +
-        dir[1] * viewPlaneNormal[1] +
-        dir[2] * viewPlaneNormal[2]
-    );
-
-    // if dot is not 1 or -1 return null since it means
-    // viewport is not looking at the image acquisition plane
-    if (dot - 1 > EPSILON) {
-      return;
-    }
+    const { origin, spacing } = this.getImageData();
 
     // how many steps are from the origin to the focal point in the
     // normal direction
@@ -456,6 +360,43 @@ class VolumeViewport extends BaseVolumeViewport {
     // number of steps, and subtract 1 to get the index
     return Math.round(Math.abs(distance) / spacingInNormal);
   };
+
+  /**
+   * Uses viewport camera and volume actor to decide if the viewport
+   * is looking at the volume in the direction of acquisition (imageIds).
+   * If so, it uses the origin and focalPoint to find which imageId is
+   * currently being viewed.
+   *
+   * @returns ImageId
+   */
+  public getCurrentImageId = (): string | undefined => {
+    if (this.getActors().length > 1) {
+      console.warn(
+        `Using the first/default actor of ${
+          this.getActors().length
+        } actors for getCurrentImageId.`
+      );
+    }
+
+    const actorEntry = this.getDefaultActor();
+
+    if (!actorEntry || !actorIsA(actorEntry, 'vtkVolume')) {
+      return;
+    }
+
+    const { uid } = actorEntry;
+    const volume = cache.getVolume(uid);
+
+    if (!volume) {
+      return;
+    }
+
+    const { viewPlaneNormal, focalPoint } = this.getCamera();
+
+    return getClosestImageId(volume, focalPoint, viewPlaneNormal);
+  };
+
+  getRotation = (): number => 0;
 }
 
 export default VolumeViewport;

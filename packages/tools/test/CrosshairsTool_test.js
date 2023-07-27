@@ -1,6 +1,7 @@
 import * as cornerstone3D from '@cornerstonejs/core';
 import * as csTools3d from '../src/index';
 import * as testUtils from '../../../utils/test/testUtils';
+import { performMouseDownAndUp } from '../../../utils/test/testUtilsMouseEvents';
 
 const {
   cache,
@@ -11,6 +12,7 @@ const {
   volumeLoader,
   setVolumesForViewports,
   imageLoader,
+  getEnabledElement,
 } = cornerstone3D;
 
 const { transformWorldToIndex } = utilities;
@@ -164,8 +166,8 @@ describe('Cornerstone Tools: ', () => {
       const canvasCenterWorld = vp.canvasToWorld(centerCanvas);
 
       const crosshairAnnotations = annotation.state.getAnnotations(
-        element1,
-        CrosshairsTool.toolName
+        CrosshairsTool.toolName,
+        element1
       );
 
       // Can successfully add add crosshairs initial state
@@ -181,10 +183,7 @@ describe('Cornerstone Tools: ', () => {
           expect(p).toBeCloseTo(canvasCenterWorld[i], 3);
           expect(p).toBeCloseTo(imageCenterWorld[i], 3);
         });
-        annotation.state.removeAnnotation(
-          crosshairAnnotation.annotationUID,
-          element1
-        );
+        annotation.state.removeAnnotation(crosshairAnnotation.annotationUID);
       });
 
       done();
@@ -261,8 +260,8 @@ describe('Cornerstone Tools: ', () => {
       }
 
       const crosshairAnnotationsAfter = annotation.state.getAnnotations(
-        element1,
-        CrosshairsTool.toolName
+        CrosshairsTool.toolName,
+        element1
       );
       const axialCanvasToolCenter =
         crosshairAnnotationsAfter[0].data.handles.toolCenter;
@@ -273,10 +272,7 @@ describe('Cornerstone Tools: ', () => {
           // Can successfully move the tool center in all viewports
           expect(p).toBeCloseTo(p1[i], 3);
           expect(p).toBeCloseTo(axialCanvasToolCenter[i], 3);
-          annotation.state.removeAnnotation(
-            crosshairAnnotation.annotationUID,
-            element1
-          );
+          annotation.state.removeAnnotation(crosshairAnnotation.annotationUID);
         });
       });
       done();
@@ -312,8 +308,8 @@ describe('Cornerstone Tools: ', () => {
       const { imageData } = vp1.getImageData();
 
       const crosshairAnnotations = annotation.state.getAnnotations(
-        element1,
-        CrosshairsTool.toolName
+        CrosshairsTool.toolName,
+        element1
       );
 
       // First viewport is axial
@@ -345,7 +341,7 @@ describe('Cornerstone Tools: ', () => {
       p1 = worldCoord1;
 
       // Mouse Down
-      let evt = new MouseEvent('mousedown', {
+      const mouseDownEvt = new MouseEvent('mousedown', {
         target: element1,
         buttons: 1,
         pageX: pageX1,
@@ -353,13 +349,16 @@ describe('Cornerstone Tools: ', () => {
         clientX: clientX1,
         clientY: clientY1,
       });
-      element1.dispatchEvent(evt);
 
       // Mouse Up instantly after
-      evt = new MouseEvent('mouseup');
+      const mouseUpEvt = new MouseEvent('mouseup');
 
-      attachCrosshairsHandler();
-      document.dispatchEvent(evt);
+      performMouseDownAndUp(
+        element1,
+        mouseDownEvt,
+        mouseUpEvt,
+        attachCrosshairsHandler
+      );
     };
 
     element1.addEventListener(Events.IMAGE_RENDERED, eventHandler);
@@ -413,8 +412,8 @@ describe('Cornerstone Tools: ', () => {
 
       setTimeout(() => {
         const crosshairAnnotations = annotation.state.getAnnotations(
-          element1,
-          CrosshairsTool.toolName
+          CrosshairsTool.toolName,
+          element1
         );
 
         // First viewport is axial
@@ -487,8 +486,8 @@ describe('Cornerstone Tools: ', () => {
         // Moving Crosshairs
         setTimeout(() => {
           const crosshairAnnotationsAfter = annotation.state.getAnnotations(
-            element1,
-            CrosshairsTool.toolName
+            CrosshairsTool.toolName,
+            element1
           );
           crosshairAnnotationsAfter.map((crosshairAnnotation) => {
             expect(crosshairAnnotation.metadata.cameraFocalPoint).toBeDefined();
@@ -496,8 +495,7 @@ describe('Cornerstone Tools: ', () => {
               // Can successfully move the tool center in all viewports
               expect(p).toBeCloseTo(worldCoord2[i], 3);
               annotation.state.removeAnnotation(
-                crosshairAnnotation.annotationUID,
-                element1
+                crosshairAnnotation.annotationUID
               );
             });
           });

@@ -1,6 +1,7 @@
 import * as cornerstone3D from '@cornerstonejs/core';
 import * as csTools3d from '../src/index';
 import * as testUtils from '../../../utils/test/testUtils';
+import { performMouseDownAndUp } from '../../../utils/test/testUtilsMouseEvents';
 
 const {
   cache,
@@ -132,8 +133,8 @@ describe('Length Tool (CPU):', () => {
     const addEventListenerForAnnotationRendered = () => {
       element.addEventListener(csToolsEvents.ANNOTATION_RENDERED, () => {
         const lengthAnnotations = annotation.state.getAnnotations(
-          element,
-          LengthTool.toolName
+          LengthTool.toolName,
+          element
         );
         // Can successfully add Length tool to annotationManager
         expect(lengthAnnotations).toBeDefined();
@@ -149,10 +150,7 @@ describe('Length Tool (CPU):', () => {
         expect(targets.length).toBe(1);
 
         expect(data[targets[0]].length).toBe(calculateLength(p1, p2));
-        annotation.state.removeAnnotation(
-          lengthAnnotation.annotationUID,
-          element
-        );
+        annotation.state.removeAnnotation(lengthAnnotation.annotationUID);
         done();
       });
     };
@@ -239,8 +237,8 @@ describe('Length Tool (CPU):', () => {
     const addEventListenerForAnnotationRendered = () => {
       element.addEventListener(csToolsEvents.ANNOTATION_RENDERED, () => {
         const lengthAnnotations = annotation.state.getAnnotations(
-          element,
-          LengthTool.toolName
+          LengthTool.toolName,
+          element
         );
         // Can successfully add Length tool to annotationManager
         expect(lengthAnnotations).toBeDefined();
@@ -258,10 +256,7 @@ describe('Length Tool (CPU):', () => {
 
         expect(data[targets[0]].length).toBe(calculateLength(p3, p2));
 
-        annotation.state.removeAnnotation(
-          lengthAnnotation.annotationUID,
-          element
-        );
+        annotation.state.removeAnnotation(lengthAnnotation.annotationUID);
         done();
       });
     };
@@ -380,8 +375,8 @@ describe('Length Tool (CPU):', () => {
     const addEventListenerForAnnotationRendered = () => {
       element.addEventListener(csToolsEvents.ANNOTATION_RENDERED, () => {
         const lengthAnnotations = annotation.state.getAnnotations(
-          element,
-          LengthTool.toolName
+          LengthTool.toolName,
+          element
         );
         // Can successfully add Length tool to annotationManager
         expect(lengthAnnotations).toBeDefined();
@@ -399,10 +394,7 @@ describe('Length Tool (CPU):', () => {
 
         expect(data[targets[0]].length).toBe(calculateLength(p1, p2));
 
-        annotation.state.removeAnnotation(
-          lengthAnnotation.annotationUID,
-          element
-        );
+        annotation.state.removeAnnotation(lengthAnnotation.annotationUID);
         done();
       });
     };
@@ -477,13 +469,16 @@ describe('Length Tool (CPU):', () => {
         pageX: pageX3,
         pageY: pageY3,
       });
-      element.dispatchEvent(evt);
 
       // Just grab and don't really move it
-      evt = new MouseEvent('mouseup');
+      const mouseUpEvt = new MouseEvent('mouseup');
 
-      addEventListenerForAnnotationRendered();
-      document.dispatchEvent(evt);
+      performMouseDownAndUp(
+        element,
+        evt,
+        mouseUpEvt,
+        addEventListenerForAnnotationRendered
+      );
     });
 
     this.stackToolGroup.addViewport(vp.id, this.renderingEngine.id);
@@ -513,8 +508,8 @@ describe('Length Tool (CPU):', () => {
     const addEventListenerForAnnotationRendered = () => {
       element.addEventListener(csToolsEvents.ANNOTATION_RENDERED, () => {
         const lengthAnnotations = annotation.state.getAnnotations(
-          element,
-          LengthTool.toolName
+          LengthTool.toolName,
+          element
         );
         // Can successfully add Length tool to annotationManager
         expect(lengthAnnotations).toBeDefined();
@@ -568,10 +563,7 @@ describe('Length Tool (CPU):', () => {
         expect(handles[0]).toEqual(afterMoveFirstHandle);
         expect(handles[1]).toEqual(afterMoveSecondHandle);
 
-        annotation.state.removeAnnotation(
-          lengthAnnotation.annotationUID,
-          element
-        );
+        annotation.state.removeAnnotation(lengthAnnotation.annotationUID);
         done();
       });
     };

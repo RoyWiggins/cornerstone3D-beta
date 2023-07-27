@@ -51,7 +51,7 @@ class DragProbeTool extends ProbeTool {
   }
 
   postMouseDownCallback = (
-    evt: EventTypes.MouseDownActivateEventType
+    evt: EventTypes.InteractionEventType
   ): ProbeAnnotation => {
     const eventDetail = evt.detail;
     const { currentPoints, element } = eventDetail;
@@ -108,6 +108,12 @@ class DragProbeTool extends ProbeTool {
     triggerAnnotationRenderForViewportIds(renderingEngine, viewportIdsToRender);
 
     return annotation;
+  };
+
+  postTouchStartCallback = (
+    evt: EventTypes.InteractionEventType
+  ): ProbeAnnotation => {
+    return this.postMouseDownCallback(evt);
   };
 
   renderAnnotation = (
@@ -181,7 +187,18 @@ class DragProbeTool extends ProbeTool {
 
     const isPreScaled = isViewportPreScaled(viewport, targetId);
 
-    const textLines = this._getTextLines(data, targetId, isPreScaled);
+    const isSuvScaled = this.isSuvScaled(
+      viewport,
+      targetId,
+      annotation.metadata.referencedImageId
+    );
+
+    const textLines = this._getTextLines(
+      data,
+      targetId,
+      isPreScaled,
+      isSuvScaled
+    );
     if (textLines) {
       const textCanvasCoordinates = [
         canvasCoordinates[0] + 6,

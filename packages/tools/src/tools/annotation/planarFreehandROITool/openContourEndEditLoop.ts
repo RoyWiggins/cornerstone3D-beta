@@ -2,7 +2,12 @@ import { getEnabledElement } from '@cornerstonejs/core';
 import { state } from '../../../store';
 import { Events } from '../../../enums';
 import { hideElementCursor } from '../../../cursors/elementCursor';
-import type { EventTypes, Annotation } from '../../../types';
+import type {
+  EventTypes,
+  Annotation,
+  ToolHandle,
+  TextBoxHandle,
+} from '../../../types';
 import { polyline } from '../../../utilities/math';
 
 const { getSubPixelSpacingAndXYDirections } = polyline;
@@ -12,9 +17,10 @@ const { getSubPixelSpacingAndXYDirections } = polyline;
  * that the tool thinks we are mid draw, and then jumps into the drawing loop.
  */
 function activateOpenContourEndEdit(
-  evt: EventTypes.MouseDownActivateEventType,
+  evt: EventTypes.InteractionEventType,
   annotation: Annotation,
-  viewportIdsToRender: string[]
+  viewportIdsToRender: string[],
+  handle: ToolHandle | null
 ): void {
   this.isDrawing = true;
 
@@ -37,6 +43,11 @@ function activateOpenContourEndEdit(
     canvasPoints.reverse();
   }
 
+  let movingTextBox = false;
+  if ((handle as TextBoxHandle).worldPosition) {
+    movingTextBox = true;
+  }
+
   this.drawData = {
     canvasPoints: canvasPoints,
     polylineIndex: canvasPoints.length - 1,
@@ -48,6 +59,7 @@ function activateOpenContourEndEdit(
     spacing,
     xDir,
     yDir,
+    movingTextBox,
   };
 
   state.isInteractingWithTool = true;
@@ -56,6 +68,9 @@ function activateOpenContourEndEdit(
   element.addEventListener(Events.MOUSE_UP, this.mouseUpDrawCallback);
   element.addEventListener(Events.MOUSE_DRAG, this.mouseDragDrawCallback);
   element.addEventListener(Events.MOUSE_CLICK, this.mouseUpDrawCallback);
+  element.addEventListener(Events.TOUCH_END, this.mouseUpDrawCallback);
+  element.addEventListener(Events.TOUCH_DRAG, this.mouseDragDrawCallback);
+  element.addEventListener(Events.TOUCH_TAP, this.mouseUpDrawCallback);
 
   hideElementCursor(element);
 }
@@ -63,7 +78,7 @@ function activateOpenContourEndEdit(
 /**
  * Registers the open contour end edit loop to the tool instance.
  */
-function registerOpenContourEndEditLoop(toolInstance) {
+function registerOpenContourEndEditLoop(toolInstance): void {
   toolInstance.activateOpenContourEndEdit =
     activateOpenContourEndEdit.bind(toolInstance);
 }

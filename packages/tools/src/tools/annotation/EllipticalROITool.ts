@@ -158,7 +158,7 @@ class EllipticalROITool extends AnnotationTool {
    *
    */
   addNewAnnotation = (
-    evt: EventTypes.MouseDownActivateEventType
+    evt: EventTypes.InteractionEventType
   ): EllipticalROIAnnotation => {
     const eventDetail = evt.detail;
     const { currentPoints, element } = eventDetail;
@@ -180,6 +180,8 @@ class EllipticalROITool extends AnnotationTool {
       viewUp
     );
 
+    const FrameOfReferenceUID = viewport.getFrameOfReferenceUID();
+
     const annotation = {
       highlighted: true,
       invalidated: true,
@@ -187,7 +189,7 @@ class EllipticalROITool extends AnnotationTool {
         toolName: this.getToolName(),
         viewPlaneNormal: <Types.Point3>[...viewPlaneNormal],
         viewUp: <Types.Point3>[...viewUp],
-        FrameOfReferenceUID: viewport.getFrameOfReferenceUID(),
+        FrameOfReferenceUID,
         referencedImageId,
       },
       data: {
@@ -212,10 +214,11 @@ class EllipticalROITool extends AnnotationTool {
           activeHandleIndex: null,
         },
         cachedStats: {},
+        initialRotation: viewport.getRotation(),
       },
     };
 
-    addAnnotation(element, annotation);
+    addAnnotation(annotation, element);
 
     const viewportIdsToRender = getViewportIdsWithToolToRender(
       element,
@@ -306,9 +309,8 @@ class EllipticalROITool extends AnnotationTool {
   };
 
   toolSelectedCallback = (
-    evt: EventTypes.MouseDownEventType,
-    annotation: EllipticalROIAnnotation,
-    interactionType: InteractionTypes
+    evt: EventTypes.InteractionEventType,
+    annotation: EllipticalROIAnnotation
   ): void => {
     const eventDetail = evt.detail;
     const { element } = eventDetail;
@@ -339,10 +341,9 @@ class EllipticalROITool extends AnnotationTool {
   };
 
   handleSelectedCallback = (
-    evt: EventTypes.MouseDownEventType,
+    evt: EventTypes.InteractionEventType,
     annotation: EllipticalROIAnnotation,
-    handle: ToolHandle,
-    interactionType = 'mouse'
+    handle: ToolHandle
   ): void => {
     const eventDetail = evt.detail;
     const { element } = eventDetail;
@@ -408,9 +409,7 @@ class EllipticalROITool extends AnnotationTool {
     evt.preventDefault();
   };
 
-  _mouseUpCallback = (
-    evt: EventTypes.MouseUpEventType | EventTypes.MouseClickEventType
-  ) => {
+  _endCallback = (evt: EventTypes.InteractionEventType): void => {
     const eventDetail = evt.detail;
     const { element } = eventDetail;
 
@@ -444,7 +443,7 @@ class EllipticalROITool extends AnnotationTool {
       this.isHandleOutsideImage &&
       this.configuration.preventHandleOutsideImage
     ) {
-      removeAnnotation(annotation.annotationUID, element);
+      removeAnnotation(annotation.annotationUID);
     }
 
     triggerAnnotationRenderForViewportIds(renderingEngine, viewportIdsToRender);
@@ -460,7 +459,7 @@ class EllipticalROITool extends AnnotationTool {
     }
   };
 
-  _mouseDragDrawCallback = (evt: MouseMoveEventType | MouseDragEventType) => {
+  _dragDrawCallback = (evt: EventTypes.InteractionEventType): void => {
     this.isDrawing = true;
     const eventDetail = evt.detail;
     const { element } = eventDetail;
@@ -497,7 +496,7 @@ class EllipticalROITool extends AnnotationTool {
     triggerAnnotationRenderForViewportIds(renderingEngine, viewportIdsToRender);
   };
 
-  _mouseDragModifyCallback = (evt: MouseDragEventType) => {
+  _dragModifyCallback = (evt: EventTypes.InteractionEventType): void => {
     this.isDrawing = true;
     const eventDetail = evt.detail;
     const { element } = eventDetail;
@@ -542,7 +541,7 @@ class EllipticalROITool extends AnnotationTool {
     triggerAnnotationRenderForViewportIds(renderingEngine, viewportIdsToRender);
   };
 
-  _dragHandle = (evt) => {
+  _dragHandle = (evt: EventTypes.InteractionEventType): void => {
     const eventDetail = evt.detail;
     const { element } = eventDetail;
     const enabledElement = getEnabledElement(element);
@@ -664,53 +663,51 @@ class EllipticalROITool extends AnnotationTool {
   _activateModify = (element) => {
     state.isInteractingWithTool = true;
 
-    element.addEventListener(Events.MOUSE_UP, this._mouseUpCallback);
-    element.addEventListener(Events.MOUSE_DRAG, this._mouseDragModifyCallback);
-    element.addEventListener(Events.MOUSE_CLICK, this._mouseUpCallback);
+    element.addEventListener(Events.MOUSE_UP, this._endCallback);
+    element.addEventListener(Events.MOUSE_DRAG, this._dragModifyCallback);
+    element.addEventListener(Events.MOUSE_CLICK, this._endCallback);
 
-    // element.addEventListener(Events.TOUCH_END, this._mouseUpCallback)
-    // element.addEventListener(Events.TOUCH_DRAG, this._mouseDragModifyCallback)
+    element.addEventListener(Events.TOUCH_END, this._endCallback);
+    element.addEventListener(Events.TOUCH_DRAG, this._dragModifyCallback);
+    element.addEventListener(Events.TOUCH_TAP, this._endCallback);
   };
 
   _deactivateModify = (element) => {
     state.isInteractingWithTool = false;
 
-    element.removeEventListener(Events.MOUSE_UP, this._mouseUpCallback);
-    element.removeEventListener(
-      Events.MOUSE_DRAG,
-      this._mouseDragModifyCallback
-    );
-    element.removeEventListener(Events.MOUSE_CLICK, this._mouseUpCallback);
+    element.removeEventListener(Events.MOUSE_UP, this._endCallback);
+    element.removeEventListener(Events.MOUSE_DRAG, this._dragModifyCallback);
+    element.removeEventListener(Events.MOUSE_CLICK, this._endCallback);
 
-    // element.removeEventListener(Events.TOUCH_END, this._mouseUpCallback)
-    // element.removeEventListener(
-    //   Events.TOUCH_DRAG,
-    //   this._mouseDragModifyCallback
-    // )
+    element.removeEventListener(Events.TOUCH_END, this._endCallback);
+    element.removeEventListener(Events.TOUCH_DRAG, this._dragModifyCallback);
+    element.removeEventListener(Events.TOUCH_TAP, this._endCallback);
   };
 
   _activateDraw = (element) => {
     state.isInteractingWithTool = true;
 
-    element.addEventListener(Events.MOUSE_UP, this._mouseUpCallback);
-    element.addEventListener(Events.MOUSE_DRAG, this._mouseDragDrawCallback);
-    element.addEventListener(Events.MOUSE_MOVE, this._mouseDragDrawCallback);
-    element.addEventListener(Events.MOUSE_CLICK, this._mouseUpCallback);
+    element.addEventListener(Events.MOUSE_UP, this._endCallback);
+    element.addEventListener(Events.MOUSE_DRAG, this._dragDrawCallback);
+    element.addEventListener(Events.MOUSE_MOVE, this._dragDrawCallback);
+    element.addEventListener(Events.MOUSE_CLICK, this._endCallback);
 
-    // element.addEventListener(Events.TOUCH_END, this._mouseUpCallback)
-    // element.addEventListener(Events.TOUCH_DRAG, this._mouseDragDrawCallback)
+    element.addEventListener(Events.TOUCH_END, this._endCallback);
+    element.addEventListener(Events.TOUCH_DRAG, this._dragDrawCallback);
+    element.addEventListener(Events.TOUCH_TAP, this._endCallback);
   };
 
   _deactivateDraw = (element) => {
     state.isInteractingWithTool = false;
 
-    element.removeEventListener(Events.MOUSE_UP, this._mouseUpCallback);
-    element.removeEventListener(Events.MOUSE_DRAG, this._mouseDragDrawCallback);
-    element.removeEventListener(Events.MOUSE_MOVE, this._mouseDragDrawCallback);
-    element.removeEventListener(Events.MOUSE_CLICK, this._mouseUpCallback);
+    element.removeEventListener(Events.MOUSE_UP, this._endCallback);
+    element.removeEventListener(Events.MOUSE_DRAG, this._dragDrawCallback);
+    element.removeEventListener(Events.MOUSE_MOVE, this._dragDrawCallback);
+    element.removeEventListener(Events.MOUSE_CLICK, this._endCallback);
 
-    // element.removeEventListener(Events.TOUCH_END, this._mouseUpCallback)
-    // element.removeEventListener(Events.TOUCH_DRAG, this._mouseDragDrawCallback)
+    element.removeEventListener(Events.TOUCH_END, this._endCallback);
+    element.removeEventListener(Events.TOUCH_DRAG, this._dragDrawCallback);
+    element.removeEventListener(Events.TOUCH_TAP, this._endCallback);
   };
 
   /**
@@ -729,7 +726,7 @@ class EllipticalROITool extends AnnotationTool {
     const { viewport } = enabledElement;
     const { element } = viewport;
 
-    let annotations = getAnnotations(element, this.getToolName());
+    let annotations = getAnnotations(this.getToolName(), element);
 
     if (!annotations?.length) {
       return renderStatus;
@@ -769,9 +766,24 @@ class EllipticalROITool extends AnnotationTool {
       const canvasCoordinates = points.map((p) =>
         viewport.worldToCanvas(p)
       ) as [Types.Point2, Types.Point2, Types.Point2, Types.Point2];
-      const canvasCorners = <Array<Types.Point2>>(
-        getCanvasEllipseCorners(canvasCoordinates)
+
+      const rotation = Math.abs(
+        viewport.getRotation() - (data.initialRotation || 0)
       );
+      let canvasCorners;
+
+      if (rotation == 90 || rotation == 270) {
+        canvasCorners = <Array<Types.Point2>>getCanvasEllipseCorners([
+          canvasCoordinates[2], // bottom
+          canvasCoordinates[3], // top
+          canvasCoordinates[0], // left
+          canvasCoordinates[1], // right
+        ]);
+      } else {
+        canvasCorners = <Array<Types.Point2>>(
+          getCanvasEllipseCorners(canvasCoordinates) // bottom, top, left, right, keep as is
+        );
+      }
 
       const { centerPointRadius } = this.configuration;
 
@@ -899,7 +911,7 @@ class EllipticalROITool extends AnnotationTool {
           drawCircleSvg(
             svgDrawingHelper,
             annotationUID,
-            ellipseUID,
+            `${ellipseUID}-center`,
             centerPoint,
             centerPointRadius,
             {
@@ -915,7 +927,18 @@ class EllipticalROITool extends AnnotationTool {
 
       const isPreScaled = isViewportPreScaled(viewport, targetId);
 
-      const textLines = this._getTextLines(data, targetId, isPreScaled);
+      const isSuvScaled = this.isSuvScaled(
+        viewport,
+        targetId,
+        annotation.metadata.referencedImageId
+      );
+
+      const textLines = this._getTextLines(
+        data,
+        targetId,
+        isPreScaled,
+        isSuvScaled
+      );
       if (!textLines || textLines.length === 0) {
         continue;
       }
@@ -959,7 +982,12 @@ class EllipticalROITool extends AnnotationTool {
     return renderStatus;
   };
 
-  _getTextLines = (data, targetId: string, isPreScaled: boolean): string[] => {
+  _getTextLines = (
+    data,
+    targetId: string,
+    isPreScaled: boolean,
+    isSuvScaled: boolean
+  ): string[] => {
     if (this.configuration.customTextLines) {
       return this.configuration.customTextLines(data);
     }
@@ -968,7 +996,7 @@ class EllipticalROITool extends AnnotationTool {
       cachedVolumeStats;
 
     const textLines: string[] = [];
-    const unit = getModalityUnit(Modality, isPreScaled);
+    const unit = getModalityUnit(Modality, isPreScaled, isSuvScaled);
 
     if (area) {
       const areaLine = isEmptyArea
@@ -1083,7 +1111,7 @@ class EllipticalROITool extends AnnotationTool {
           worldPos2
         );
         const isEmptyArea = worldWidth === 0 && worldHeight === 0;
-        const area = Math.PI * (worldWidth / 2) * (worldHeight / 2);
+        const area = Math.abs(Math.PI * (worldWidth / 2) * (worldHeight / 2));
 
         let count = 0;
         let mean = 0;

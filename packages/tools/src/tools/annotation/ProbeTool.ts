@@ -138,7 +138,7 @@ class ProbeTool extends AnnotationTool {
    *
    */
   addNewAnnotation = (
-    evt: EventTypes.MouseDownActivateEventType
+    evt: EventTypes.InteractionEventType
   ): ProbeAnnotation => {
     const eventDetail = evt.detail;
     const { currentPoints, element } = eventDetail;
@@ -158,6 +158,8 @@ class ProbeTool extends AnnotationTool {
       viewUp
     );
 
+    const FrameOfReferenceUID = viewport.getFrameOfReferenceUID();
+
     const annotation = {
       invalidated: true,
       highlighted: true,
@@ -165,7 +167,7 @@ class ProbeTool extends AnnotationTool {
         toolName: this.getToolName(),
         viewPlaneNormal: <Types.Point3>[...viewPlaneNormal],
         viewUp: <Types.Point3>[...viewUp],
-        FrameOfReferenceUID: viewport.getFrameOfReferenceUID(),
+        FrameOfReferenceUID,
         referencedImageId,
       },
       data: {
@@ -175,7 +177,7 @@ class ProbeTool extends AnnotationTool {
       },
     };
 
-    addAnnotation(element, annotation);
+    addAnnotation(annotation, element);
 
     const viewportIdsToRender = getViewportIdsWithToolToRender(
       element,
@@ -232,10 +234,8 @@ class ProbeTool extends AnnotationTool {
   }
 
   handleSelectedCallback(
-    evt: EventTypes.MouseDownEventType,
-    annotation: ProbeAnnotation,
-    handle: ToolHandle,
-    interactionType = 'mouse'
+    evt: EventTypes.InteractionEventType,
+    annotation: ProbeAnnotation
   ): void {
     const eventDetail = evt.detail;
     const { element } = eventDetail;
@@ -266,9 +266,7 @@ class ProbeTool extends AnnotationTool {
     evt.preventDefault();
   }
 
-  _mouseUpCallback = (
-    evt: EventTypes.MouseUpEventType | EventTypes.MouseClickEventType
-  ) => {
+  _endCallback = (evt: EventTypes.InteractionEventType): void => {
     const eventDetail = evt.detail;
     const { element } = eventDetail;
 
@@ -294,7 +292,7 @@ class ProbeTool extends AnnotationTool {
       this.isHandleOutsideImage &&
       this.configuration.preventHandleOutsideImage
     ) {
-      removeAnnotation(annotation.annotationUID, element);
+      removeAnnotation(annotation.annotationUID);
     }
 
     triggerAnnotationRenderForViewportIds(renderingEngine, viewportIdsToRender);
@@ -310,7 +308,7 @@ class ProbeTool extends AnnotationTool {
     }
   };
 
-  _mouseDragCallback = (evt) => {
+  _dragCallback = (evt) => {
     this.isDrawing = true;
     const eventDetail = evt.detail;
     const { currentPoints, element } = eventDetail;
@@ -367,23 +365,25 @@ class ProbeTool extends AnnotationTool {
   _activateModify = (element) => {
     state.isInteractingWithTool = true;
 
-    element.addEventListener(Events.MOUSE_UP, this._mouseUpCallback);
-    element.addEventListener(Events.MOUSE_DRAG, this._mouseDragCallback);
-    element.addEventListener(Events.MOUSE_CLICK, this._mouseUpCallback);
+    element.addEventListener(Events.MOUSE_UP, this._endCallback);
+    element.addEventListener(Events.MOUSE_DRAG, this._dragCallback);
+    element.addEventListener(Events.MOUSE_CLICK, this._endCallback);
 
-    // element.addEventListener(Events.TOUCH_END, this._mouseUpCallback)
-    // element.addEventListener(Events.TOUCH_DRAG, this._mouseDragCallback)
+    element.addEventListener(Events.TOUCH_END, this._endCallback);
+    element.addEventListener(Events.TOUCH_DRAG, this._dragCallback);
+    element.addEventListener(Events.TOUCH_TAP, this._endCallback);
   };
 
   _deactivateModify = (element) => {
     state.isInteractingWithTool = false;
 
-    element.removeEventListener(Events.MOUSE_UP, this._mouseUpCallback);
-    element.removeEventListener(Events.MOUSE_DRAG, this._mouseDragCallback);
-    element.removeEventListener(Events.MOUSE_CLICK, this._mouseUpCallback);
+    element.removeEventListener(Events.MOUSE_UP, this._endCallback);
+    element.removeEventListener(Events.MOUSE_DRAG, this._dragCallback);
+    element.removeEventListener(Events.MOUSE_CLICK, this._endCallback);
 
-    // element.removeEventListener(Events.TOUCH_END, this._mouseUpCallback)
-    // element.removeEventListener(Events.TOUCH_DRAG, this._mouseDragCallback)
+    element.removeEventListener(Events.TOUCH_END, this._endCallback);
+    element.removeEventListener(Events.TOUCH_DRAG, this._dragCallback);
+    element.removeEventListener(Events.TOUCH_TAP, this._endCallback);
   };
 
   /**
@@ -402,7 +402,7 @@ class ProbeTool extends AnnotationTool {
     const { viewport } = enabledElement;
     const { element } = viewport;
 
-    let annotations = getAnnotations(element, this.getToolName());
+    let annotations = getAnnotations(this.getToolName(), element);
 
     if (!annotations?.length) {
       return renderStatus;
@@ -504,7 +504,18 @@ class ProbeTool extends AnnotationTool {
 
       const isPreScaled = isViewportPreScaled(viewport, targetId);
 
-      const textLines = this._getTextLines(data, targetId, isPreScaled);
+      const isSuvScaled = this.isSuvScaled(
+        viewport,
+        targetId,
+        annotation.metadata.referencedImageId
+      );
+
+      const textLines = this._getTextLines(
+        data,
+        targetId,
+        isPreScaled,
+        isSuvScaled
+      );
       if (textLines) {
         const textCanvasCoordinates = [
           canvasCoordinates[0] + 6,
@@ -529,7 +540,8 @@ class ProbeTool extends AnnotationTool {
   _getTextLines(
     data,
     targetId: string,
-    isPreScaled: boolean
+    isPreScaled: boolean,
+    isSuvScaled: boolean
   ): string[] | undefined {
     if (this.configuration.customTextLines) {
       return this.configuration.customTextLines(data);
@@ -542,7 +554,7 @@ class ProbeTool extends AnnotationTool {
     }
 
     const textLines = [];
-    const unit = getModalityUnit(Modality, isPreScaled);
+    const unit = getModalityUnit(Modality, isPreScaled, isSuvScaled);
 
     textLines.push(`(${index[0]}, ${index[1]}, ${index[2]})`);
 
@@ -570,7 +582,7 @@ class ProbeTool extends AnnotationTool {
     // Check if we have scaling for the other 2 SUV types for the PET.
     if (
       modality === 'PT' &&
-      imageVolume.scaling.PET &&
+      imageVolume.scaling?.PET &&
       (imageVolume.scaling.PET.suvbwToSuvbsa ||
         imageVolume.scaling.PET.suvbwToSuvlbm)
     ) {
@@ -613,7 +625,9 @@ class ProbeTool extends AnnotationTool {
         continue;
       }
 
-      const { dimensions, scalarData, imageData, metadata } = image;
+      const { dimensions, imageData, metadata } = image;
+      const scalarData =
+        'getScalarData' in image ? image.getScalarData() : image.scalarData;
 
       const modality = metadata.Modality;
       const index = transformWorldToIndex(imageData, worldPos);

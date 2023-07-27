@@ -1,19 +1,22 @@
-import { BaseTool } from '../base';
-import { getEnabledElementByIds, Types } from '@cornerstonejs/core';
+import {
+  getEnabledElementByIds,
+  Types,
+  utilities as csUtils,
+} from '@cornerstonejs/core';
 import Representations from '../../enums/SegmentationRepresentations';
-import { getSegmentationRepresentations } from '../../stateManagement/segmentation/segmentationState';
-import { labelmapDisplay } from './Labelmap';
 import { config as segmentationConfig } from '../../stateManagement/segmentation';
-import { triggerSegmentationRepresentationModified } from '../../stateManagement/segmentation/triggerSegmentationEvents';
+import { setSegmentationVisibility } from '../../stateManagement/segmentation/config/segmentationVisibility';
+import { getSegmentationRepresentations } from '../../stateManagement/segmentation/segmentationState';
 import { getToolGroup } from '../../store/ToolGroupManager';
-
 import { PublicToolProps, ToolProps } from '../../types';
+import { BaseTool } from '../base';
 
-import { deepMerge } from '../../utilities';
 import {
   SegmentationRepresentationConfig,
   ToolGroupSpecificRepresentation,
 } from '../../types/SegmentationStateTypes';
+import { contourDisplay } from './Contour';
+import { labelmapDisplay } from './Labelmap';
 
 /**
  * In Cornerstone3DTools, displaying of segmentations are handled by the SegmentationDisplayTool.
@@ -60,14 +63,16 @@ class SegmentationDisplayTool extends BaseTool {
       return;
     }
 
-    // for each segmentationData, make the visibility false
-    for (const segmentationRepresentation of toolGroupSegmentationRepresentations) {
-      segmentationRepresentation.visibility = true;
-      triggerSegmentationRepresentationModified(
-        toolGroupId,
-        segmentationRepresentation.segmentationRepresentationUID
-      );
-    }
+    // for each segmentationData, make the visibility true
+    toolGroupSegmentationRepresentations.forEach(
+      (segmentationRepresentation) => {
+        setSegmentationVisibility(
+          toolGroupId,
+          segmentationRepresentation.segmentationRepresentationUID,
+          true
+        );
+      }
+    );
   }
 
   onSetToolDisabled(): void {
@@ -83,13 +88,15 @@ class SegmentationDisplayTool extends BaseTool {
     }
 
     // for each segmentationData, make the visibility false
-    for (const segmentationRepresentation of toolGroupSegmentationRepresentations) {
-      segmentationRepresentation.visibility = false;
-      triggerSegmentationRepresentationModified(
-        toolGroupId,
-        segmentationRepresentation.segmentationRepresentationUID
-      );
-    }
+    toolGroupSegmentationRepresentations.forEach(
+      (segmentationRepresentation) => {
+        setSegmentationVisibility(
+          toolGroupId,
+          segmentationRepresentation.segmentationRepresentationUID,
+          false
+        );
+      }
+    );
   }
 
   /**
@@ -145,6 +152,14 @@ class SegmentationDisplayTool extends BaseTool {
                 config
               )
             );
+          } else if (representation.type == Representations.Contour) {
+            viewportsRenderList.push(
+              contourDisplay.render(
+                viewport as Types.IVolumeViewport,
+                representation,
+                config
+              )
+            );
           }
         }
 
@@ -173,7 +188,7 @@ class SegmentationDisplayTool extends BaseTool {
     const globalConfig = segmentationConfig.getGlobalConfig();
 
     // merge two configurations and override the global config
-    const mergedConfig = deepMerge(globalConfig, toolGroupConfig);
+    const mergedConfig = csUtils.deepMerge(globalConfig, toolGroupConfig);
 
     return mergedConfig;
   }
